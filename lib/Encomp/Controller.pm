@@ -4,18 +4,18 @@ use Encomp::Exporter;
 
 Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Controller',
-    as_is         => [qw/hook_to/],
+    as_is         => [qw/hook_to plugins/],
 );
 
 sub hook_to {
     my $class = caller;
     my ($hook, $callback) = @_;
-    push @{ $class->hook->{$hook} ||= [] }, $callback;
+    push @{ $class->composite->hook->{$hook} ||= [] }, $callback;
 }
 
 sub plugins {
     my $class = caller;
-    push @{$class->plugins}, ref $_[0] ? @{$_[0]} : @_;
+    push @{$class->composite->plugins}, ref $_[0] ? @{$_[0]} : @_;
 }
 
 1;

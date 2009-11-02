@@ -101,7 +101,6 @@ Bar->unimport; ::diag 'no Bar;';
 
 ::is_deeply \@Test::Bar::ISA, [qw/Bar::Object Foo::Object/];
 
-
 package Test::Baz;
 
 Baz->import; ::diag 'use Baz;';

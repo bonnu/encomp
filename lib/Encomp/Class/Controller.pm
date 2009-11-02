@@ -2,10 +2,10 @@ package Encomp::Class::Controller;
 
 use Encomp::Class;
 use Encomp::Complex;
+use Encomp::Meta::Composite;
 
 Encomp::Class->setup_metadata(
-    hook    => sub { +{} },
-    plugins => sub { +[] },
+    composite => sub { Encomp::Meta::Composite->new },
 );
 
 1;

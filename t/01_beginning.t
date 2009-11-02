@@ -1,12 +1,16 @@
 use strict;
 use warnings;
 use Test::More 'no_plan';
+use Benchmark qw/cmpthese timethese/;
+use Data::Dumper;
 
 ENCOMPASSER_DEFINITION_BLOCK :
 {
     package Foo;
 
     use Encomp;
+
+    plugins 'Foo::Plugin::A';
 
     processes
         'initialize',
@@ -23,13 +27,31 @@ ENCOMPASSER_DEFINITION_BLOCK :
 
 PLUGIN_DEFINITION_BLOCK :
 {
-    package Foo::Plugin;
+    package Foo::Plugin::A;
 
     use Encomp::Plugin;
 
-    hook_to '/initialize' => sub {
-        my $self = shift;
-    };
+    sub method_a { 'a' }
+
+    no  Encomp::Plugin;
+
+    package Foo::Plugin::B;
+
+    use Encomp::Plugin;
+
+    plugins 'Foo::Plugin::A';
+
+    sub method_b { 'b' }
+
+    no  Encomp::Plugin;
+
+    package Foo::Plugin::C;
+
+    use Encomp::Plugin;
+
+    plugins 'Foo::Plugin::B';
+
+    sub method_c { 'c' }
 
     no  Encomp::Plugin;
 }
@@ -41,21 +63,26 @@ CONTROLLER_DEFINITION_BLOCK :
     use Encomp::Controller;
     use Data::Dumper;
 
-    hook_to '/initialize'      => sub { shift->{data}++ };
-    hook_to '/dispatch'        => sub { shift->{data}++ };
-    hook_to '/dispatch/before' => sub { shift->{data}++ };
-    hook_to '/dispatch/main'   => sub { shift->{data}++ };
-    hook_to '/dispatch/after'  => sub { shift->{data}++ };
-    hook_to '/finalize'        => sub { shift->{data}++ };
+    plugins 'Foo::Plugin::C';
 
-    hook_to '/finalize'        => sub {
+    hook_to '/initialize'      => sub { shift->{data}++; 1 };
+    hook_to '/initialize'      => sub { shift->test_01 ; 1 };
+    hook_to '/dispatch'        => sub { shift->{data}++; 1 };
+    hook_to '/dispatch/before' => sub { shift->{data}++; 1 };
+    hook_to '/dispatch/main'   => sub { shift->{data}++; 1 };
+    hook_to '/dispatch/after'  => sub { shift->test_02 ; 1 };
+
+    sub test_01 {
         my $self = shift;
-        no strict 'refs';
-        print Dumper($self);
-        $self->test;
-    };
+        ::is +$self->method_a, 'a';
+        ::is +$self->method_b, 'b';
+        ::is +$self->method_c, 'c';
+    }
 
-    sub test { ::is shift->{data}, 6 }
+    sub test_02 {
+        my $self = shift;
+        ::is +$self->{data}, 4;
+    }
 
     no  Encomp::Controller;
 }

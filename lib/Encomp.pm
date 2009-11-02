@@ -6,17 +6,23 @@ our $VERSION = '0.01';
 
 Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Encompasser',
-    as_is         => [qw/processes plugins/],
+    as_is         => [qw/processes hook_to plugins/],
 );
 
 sub processes {
     my $class = caller;
-    $class->root->append_nodes({ level => 1 }, @_);
+    $class->node->append_nodes({ level => 1 }, @_);
+}
+
+sub hook_to {
+    my $class = caller;
+    my ($hook, $callback) = @_;
+    push @{ $class->composite->hook->{$hook} ||= [] }, $callback;
 }
 
 sub plugins {
     my $class = caller;
-    push @{$class->plugins}, ref $_[0] ? @{$_[0]} : @_;
+    push @{$class->composite->plugins}, ref $_[0] ? @{$_[0]} : @_;
 }
 
 1;
