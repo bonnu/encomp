@@ -3,26 +3,27 @@ package Encomp::Complex;
 use strict;
 use warnings;
 use Carp qw/croak/;
+use List::MoreUtils qw/uniq/;
 
 my %COMPLEX;
 
 sub build {
     my $class = shift;
-    my $ns    = $class->_conflate(@_);
+    my $ns    = $class->_initialize(@_);
     bless {}, $ns;
 }
 
-sub _conflate {
+sub load_hooks {
+    my ($class, $object) = @_;
+    my $ns = ref $object;
+    my ($encompasser, $controller) = _split_ns($ns);
+    $COMPLEX{$encompasser}{$controller}{hooks};
+}
+
+sub _initialize {
     my ($class, $encompasser, $controller) = @_;
-    my $ns      = __generate_ns($encompasser, $controller);
-    my $complex = $COMPLEX{$encompasser} ||= {};
-    unless (exists $complex->{$controller}) {
-        my $plugins = __conflate_plugins($encompasser, $controller);
-        my $methods = __conflate_methods($controller, $plugins);
-        $complex->{$controller} = {
-            methods => $methods,
-            plugins => $plugins,
-        };
+    my $ns = _generate_ns($encompasser, $controller);
+    if (_conflate($encompasser, $controller)) {
         do {
             no strict 'refs';
             *{$ns . '::AUTOLOAD'} = \&_autoload;
@@ -31,34 +32,55 @@ sub _conflate {
     return $ns;
 }
 
-sub __generate_ns {
+sub _generate_ns {
     my ($encompasser, $controller) = @_;
     my $ns = join '::', $encompasser, '__complex__', $controller;
 }
 
-sub __split_ns {
+sub _split_ns {
     my $ns = shift;
     split '::__complex__::', $ns;
 }
 
-sub __conflate_methods {
-    my ($controller, $plugins) = @_;
+sub _conflate {
+    my ($encompasser, $controller) = @_;
+    $COMPLEX{$encompasser} ||= {};
+    unless ($COMPLEX{$encompasser}{$controller}) {
+        my $c_plugins = $controller->composite->seek_all_plugins;
+        my $e_plugins = $encompasser->composite->seek_all_plugins;
+        my $methods   = _conflate_methods(@{$c_plugins}, $controller, @{$e_plugins});
+        my $hooks     = _conflate_hooks(@{$c_plugins}, $controller, @{$e_plugins}, $encompasser);
+        $COMPLEX{$encompasser}{$controller} = {
+            methods => $methods,
+            hooks   => $hooks,
+        };
+        return 1;
+    }
+    return 0;
+}
+
+sub _conflate_methods {
+    my (@classes) = @_;
     my %methods;
-    for my $class ($controller, @{$plugins}) {
+    for my $class (uniq @classes) {
         my $entries = do { no strict 'refs'; \%{$class . '::'} };
         %methods = (%methods, %{$entries});
     }
     delete $methods{$_} for qw/__ANON__ ISA BEGIN/;
+    map { /::$/o && delete $methods{$_} } keys %methods;
     \%methods;
 }
 
-sub __conflate_plugins {
-    my ($encompasser, $controller) = @_;
-    my @plugins;
-    for my $role ($controller, $encompasser) {
-        $role->composite->seek_all_plugins(\@plugins);
+sub _conflate_hooks {
+    my (@classes) = @_;
+    my %hooks;
+    for my $class (uniq @classes) {
+        my $hook = $class->composite->hook;
+        for my $point (keys %{$hook}) {
+            push @{$hooks{$point} ||= []}, @{$hook->{$point}};
+        }
     }
-    \@plugins;
+    \%hooks;
 }
 
 sub _autoload {
@@ -67,7 +89,7 @@ sub _autoload {
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
     my $ns = $1;
-    my ($encompasser, $controller) = __split_ns($ns);
+    my ($encompasser, $controller) = _split_ns($ns);
     my $complex = $COMPLEX{$encompasser};
     if (my $code = $complex->{$controller}{methods}{$name}) {
         do {

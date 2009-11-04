@@ -16,13 +16,12 @@ sub processes {
 
 sub hook_to {
     my $class = caller;
-    my ($hook, $callback) = @_;
-    push @{ $class->composite->hook->{$hook} ||= [] }, $callback;
+    $class->composite->add_hook(@_);
 }
 
 sub plugins {
     my $class = caller;
-    push @{$class->composite->plugins}, ref $_[0] ? @{$_[0]} : @_;
+    $class->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
 }
 
 1;

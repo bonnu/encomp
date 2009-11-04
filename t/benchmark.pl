@@ -23,11 +23,19 @@ ENCOMPASSER_DEFINITION_BLOCK :
 
 PLUGIN_DEFINITION_BLOCK :
 {
-    package Foo::Plugin;
+    package Foo::Plugin::A;
 
     use Encomp::Plugin;
 
     sub plugin_method { shift->{data}++ }
+
+    no  Encomp::Plugin;
+
+    package Foo::Plugin::B;
+
+    use Encomp::Plugin;
+
+    hook_to '/dispatch/main' => sub { shift->{data}++ };
 
     no  Encomp::Plugin;
 }
@@ -38,7 +46,10 @@ CONTROLLER_DEFINITION_BLOCK :
 
     use Encomp::Controller;
 
-    plugins 'Foo::Plugin';
+    plugins qw/
+        Foo::Plugin::A
+        Foo::Plugin::B
+    /;
 
     hook_to '/initialize'      => sub { shift->{data}++ };
     hook_to '/dispatch'        => sub { shift->{data}++ };
@@ -48,8 +59,8 @@ CONTROLLER_DEFINITION_BLOCK :
     hook_to '/finalize'        => sub { shift->plugin_method };
     hook_to '/finalize'        => sub { $_[0]->test };
 
-#   sub test { print $_[0]->{data} == 5 ? 'ok' : 'ng', "\n" }
-    sub test { $_[0]->{data} == 6 }
+#   sub test { print $_[0]->{data} == 7 ? 'ok' : 'ng', "\n" }
+    sub test { $_[0]->{data} == 7 }
 
     no  Encomp::Controller;
 }

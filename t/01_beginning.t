@@ -33,6 +33,8 @@ PLUGIN_DEFINITION_BLOCK :
 
     sub method_a { 'a' }
 
+    hook_to '/dispatch/main' => sub { shift->{data}++ };
+
     no  Encomp::Plugin;
 
     package Foo::Plugin::B;
@@ -81,7 +83,7 @@ CONTROLLER_DEFINITION_BLOCK :
 
     sub test_02 {
         my $self = shift;
-        ::is +$self->{data}, 4;
+        ::is +$self->{data}, 5;
     }
 
     no  Encomp::Controller;

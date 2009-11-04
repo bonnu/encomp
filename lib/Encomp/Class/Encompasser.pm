@@ -12,20 +12,21 @@ Encomp::Class->setup_metadata(
 
 sub operate {
     my ($class, $controller, @args) = @_;
-    my $obj = Encomp::Complex->build($class => $controller);
+    my $object = Encomp::Complex->build($class => $controller);
+    my $hooks  = Encomp::Complex->load_hooks($object);
     eval {
         $class->node->invoke(sub {
             my ($self, $context) = @_;
-            if (my $hooks = $controller->composite->hook->{$self->get_path}) {
+            if (my $hooks = $hooks->{$self->get_path}) {
                 for my $code (@{$hooks}) {
-                    my $ret = $code->($obj, $context, @args);
+                    my $ret = $code->($object, $context, @args);
                     return 0 unless $ret;
                 }
             }
             return 1;
         });
     };
-    Encomp::Complex->clean($obj);
+    Encomp::Complex->clean($object);
 }
 
 1;

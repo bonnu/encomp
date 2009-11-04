@@ -28,6 +28,16 @@ sub seek_all_plugins {
     $plugins;
 }
 
+sub add_hook {
+    my ($self, $hook, $callback) = @_;
+    push @{$self->hook->{$hook} ||= []}, $callback;
+}
+
+sub add_plugins {
+    my ($self, @plugins) = @_;
+    push @{$self->plugins}, @plugins;
+}
+
 1;
 
 __END__
