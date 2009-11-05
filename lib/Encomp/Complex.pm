@@ -7,27 +7,21 @@ use List::MoreUtils qw/uniq/;
 
 my %COMPLEX;
 
+sub all_complex { \%COMPLEX }
+
 sub build {
     my $class = shift;
     my $ns    = $class->_initialize(@_);
     bless {}, $ns;
 }
 
-sub load_hooks {
-    my ($class, $object) = @_;
-    my $ns = ref $object;
-    my ($encompasser, $controller) = _split_ns($ns);
-    $COMPLEX{$encompasser}{$controller}{hooks};
-}
-
 sub _initialize {
     my ($class, $encompasser, $controller) = @_;
     my $ns = _generate_ns($encompasser, $controller);
     if (_conflate($encompasser, $controller)) {
-        do {
-            no strict 'refs';
-            *{$ns . '::AUTOLOAD'} = \&_autoload;
-        };
+        no strict 'refs';
+        *{$ns . '::AUTOLOAD'} = \&_autoload;
+        *{$ns . '::complex'}  = sub { $COMPLEX{$encompasser}{$controller} };
     }
     return $ns;
 }
@@ -37,19 +31,16 @@ sub _generate_ns {
     my $ns = join '::', $encompasser, '__complex__', $controller;
 }
 
-sub _split_ns {
-    my $ns = shift;
-    split '::__complex__::', $ns;
-}
-
 sub _conflate {
     my ($encompasser, $controller) = @_;
     $COMPLEX{$encompasser} ||= {};
     unless ($COMPLEX{$encompasser}{$controller}) {
-        my $c_plugins = $controller->composite->seek_all_plugins;
+        my $c_plugins = $controller ->composite->seek_all_plugins;
         my $e_plugins = $encompasser->composite->seek_all_plugins;
-        my $methods   = _conflate_methods(@{$c_plugins}, $controller, @{$e_plugins});
-        my $hooks     = _conflate_hooks(@{$c_plugins}, $controller, @{$e_plugins}, $encompasser);
+        my $methods   =
+            _conflate_methods(@{$c_plugins}, $controller, @{$e_plugins});
+        my $hooks     =
+            _conflate_hooks(@{$c_plugins}, $controller, @{$e_plugins}, $encompasser);
         $COMPLEX{$encompasser}{$controller} = {
             methods => $methods,
             hooks   => $hooks,
@@ -66,7 +57,7 @@ sub _conflate_methods {
         my $entries = do { no strict 'refs'; \%{$class . '::'} };
         %methods = (%methods, %{$entries});
     }
-    delete $methods{$_} for qw/__ANON__ ISA BEGIN/;
+    delete $methods{$_} for qw/__ANON__ ISA BEGIN can isa/;
     map { /::$/o && delete $methods{$_} } keys %methods;
     \%methods;
 }
@@ -89,9 +80,7 @@ sub _autoload {
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
     my $ns = $1;
-    my ($encompasser, $controller) = _split_ns($ns);
-    my $complex = $COMPLEX{$encompasser};
-    if (my $code = $complex->{$controller}{methods}{$name}) {
+    if (my $code = $self->complex->{methods}{$name}) {
         do {
             no strict 'refs';
             *{$ns . '::' . $name} = $code;

@@ -35,6 +35,8 @@ PLUGIN_DEFINITION_BLOCK :
 
     use Encomp::Plugin;
 
+    plugins 'Foo::Plugin::A';
+
     hook_to '/dispatch/main' => sub { shift->{data}++ };
 
     no  Encomp::Plugin;
@@ -46,10 +48,7 @@ CONTROLLER_DEFINITION_BLOCK :
 
     use Encomp::Controller;
 
-    plugins qw/
-        Foo::Plugin::A
-        Foo::Plugin::B
-    /;
+    plugins qw/ Foo::Plugin::B /;
 
     hook_to '/initialize'      => sub { shift->{data}++ };
     hook_to '/dispatch'        => sub { shift->{data}++ };

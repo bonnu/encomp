@@ -62,7 +62,7 @@ use Test::More 'no_plan';
 
 package Test::Foo;
 
-Foo->import; ::diag 'use Foo;';
+Foo->import; #::diag 'use Foo;';
 
 ::can_ok 'Test::Foo', 'foo';
 ::can_ok 'Test::Foo', 'suger';
@@ -71,7 +71,7 @@ Foo->import; ::diag 'use Foo;';
 
 ::is +Test::Foo->suger, 'Foo', 'suger is \'Foo\'';
 
-Foo->unimport; ::diag 'no Foo;';
+Foo->unimport; #::diag 'no Foo;';
 
 ::ok ! Test::Foo->can('foo'),   'Test::Foo->can\'t(\'foo\')';
 ::ok ! Test::Foo->can('suger'), 'Test::Foo->can\'t(\'suger\')';
@@ -82,7 +82,7 @@ Foo->unimport; ::diag 'no Foo;';
 
 package Test::Bar;
 
-Bar->import; ::diag 'use Bar;';
+Bar->import; #::diag 'use Bar;';
 
 ::can_ok 'Test::Bar', 'foo';
 ::can_ok 'Test::Bar', 'bar';
@@ -91,7 +91,7 @@ Bar->import; ::diag 'use Bar;';
 
 ::is +Test::Bar->suger, 'Bar', 'suger is \'Bar\'(The method of doing override becomes effective)';
 
-Bar->unimport; ::diag 'no Bar;';
+Bar->unimport; #::diag 'no Bar;';
 
 ::ok ! Test::Bar->can('foo'),   'Test::Bar->can\'t(\'foo\')';
 ::ok ! Test::Bar->can('bar'),   'Test::Bar->can\'t(\'bar\')' ;
@@ -103,7 +103,7 @@ Bar->unimport; ::diag 'no Bar;';
 
 package Test::Baz;
 
-Baz->import; ::diag 'use Baz;';
+Baz->import; #::diag 'use Baz;';
 
 ::can_ok 'Test::Baz', 'foo';
 ::can_ok 'Test::Baz', 'bar';
@@ -112,7 +112,7 @@ Baz->import; ::diag 'use Baz;';
 
 ::is +Test::Baz->suger, 'Baz', 'suger is \'Baz\'(The method of doing override becomes effective)';
 
-Baz->unimport; ::diag 'no Baz;';
+Baz->unimport; #::diag 'no Baz;';
 
 ::ok ! Test::Baz->can('foo'),   'Test::Baz->can\'t(\'foo\')';
 ::ok ! Test::Baz->can('bar'),   'Test::Baz->can\'t(\'bar\')' ;

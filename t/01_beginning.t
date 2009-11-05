@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More 'no_plan';
 use Benchmark qw/cmpthese timethese/;
+use Class::Inspector;
 use Data::Dumper;
 
 ENCOMPASSER_DEFINITION_BLOCK :
@@ -27,35 +28,39 @@ ENCOMPASSER_DEFINITION_BLOCK :
 
 PLUGIN_DEFINITION_BLOCK :
 {
-    package Foo::Plugin::A;
+    {
+        package Foo::Plugin::A;
 
-    use Encomp::Plugin;
+        use Encomp::Plugin;
 
-    sub method_a { 'a' }
+        sub method_a { 'a' }
 
-    hook_to '/dispatch/main' => sub { shift->{data}++ };
+        hook_to '/dispatch/main' => sub { shift->{data}++ };
 
-    no  Encomp::Plugin;
+        no  Encomp::Plugin;
+    }
 
-    package Foo::Plugin::B;
+    {
+        package Foo::Plugin::B;
 
-    use Encomp::Plugin;
+        use Encomp::Plugin;
 
-    plugins 'Foo::Plugin::A';
+        sub method_b { 'b' }
 
-    sub method_b { 'b' }
+        no  Encomp::Plugin;
+    }
 
-    no  Encomp::Plugin;
+    {
+        package Foo::Plugin::C;
 
-    package Foo::Plugin::C;
+        use Encomp::Plugin;
 
-    use Encomp::Plugin;
+        plugins 'Foo::Plugin::B';
 
-    plugins 'Foo::Plugin::B';
+        sub method_c { 'c' }
 
-    sub method_c { 'c' }
-
-    no  Encomp::Plugin;
+        no  Encomp::Plugin;
+    }
 }
 
 CONTROLLER_DEFINITION_BLOCK :
@@ -63,16 +68,16 @@ CONTROLLER_DEFINITION_BLOCK :
     package Foo::Controller;
 
     use Encomp::Controller;
-    use Data::Dumper;
 
     plugins 'Foo::Plugin::C';
 
-    hook_to '/initialize'      => sub { shift->{data}++; 1 };
-    hook_to '/initialize'      => sub { shift->test_01 ; 1 };
-    hook_to '/dispatch'        => sub { shift->{data}++; 1 };
-    hook_to '/dispatch/before' => sub { shift->{data}++; 1 };
-    hook_to '/dispatch/main'   => sub { shift->{data}++; 1 };
-    hook_to '/dispatch/after'  => sub { shift->test_02 ; 1 };
+    hook_to '/initialize'      => sub { shift->{data}++; 1    };
+    hook_to '/initialize'      => sub { shift->test_01 ; 1    };
+    hook_to '/dispatch'        => sub { shift->{data}++; 1    };
+    hook_to '/dispatch/before' => sub { shift->{data}++; 1    };
+    hook_to '/dispatch/main'   => sub { shift->{data}++; 1    };
+    hook_to '/dispatch/after'  => sub { shift->test_02 ; 1    };
+    hook_to '/finalize'        => sub { shift->test_03(@_); 1 };
 
     sub test_01 {
         my $self = shift;
@@ -86,9 +91,29 @@ CONTROLLER_DEFINITION_BLOCK :
         ::is +$self->{data}, 5;
     }
 
+    sub test_03 {
+        my ($self, $context) = @_;
+    }
+
     no  Encomp::Controller;
 }
 
-ok  +Foo->isa('Encomp::Class::Encompasser');
+ok  +Foo            ->isa('Encomp::Class::Encompasser');
+ok  +Foo::Plugin::A ->isa('Encomp::Class::Plugin');
+ok  +Foo::Plugin::B ->isa('Encomp::Class::Plugin');
+ok  +Foo::Controller->isa('Encomp::Class::Controller');
 
 Foo->operate('Foo::Controller');
+
+is_deeply +Class::Inspector->methods('Foo::__complex__::Foo::Controller'),
+    [qw/
+        AUTOLOAD
+        complex
+        method_a
+        method_b
+        method_c
+        test_01
+        test_02
+        test_03
+    /];
+

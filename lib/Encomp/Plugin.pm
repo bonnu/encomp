@@ -8,13 +8,11 @@ Encomp::Exporter->setup_suger_features(
 );
 
 sub hook_to {
-    my $class = caller;
-    $class->composite->add_hook(@_);
+    caller->composite->add_hook(@_);
 }
 
 sub plugins {
-    my $class = caller;
-    $class->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
+    caller->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
 }
 
 1;
