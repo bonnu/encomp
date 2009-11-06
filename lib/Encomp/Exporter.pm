@@ -86,6 +86,7 @@ sub _build_unimport {
             my $export = do { no strict 'refs'; \@{$isa . '::EXPORT'} };
             delete $stash->{$_} for @{$export};
         }
+        return 1;
     }
 }
 

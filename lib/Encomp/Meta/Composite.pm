@@ -20,7 +20,7 @@ sub seek_all_plugins {
     $plugins ||= [];
     for my $plugin (@{$self->plugins}) {
         unless (grep { $_ eq $plugin } @{$plugins}) {
-            Encomp::Util->load_class($plugin);
+            Encomp::Util::load_class($plugin);
             push @{$plugins}, $plugin;
             $plugin->composite->seek_all_plugins($plugins);
         }

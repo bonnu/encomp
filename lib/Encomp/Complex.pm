@@ -35,6 +35,7 @@ sub _conflate {
     my ($encompasser, $controller) = @_;
     $COMPLEX{$encompasser} ||= {};
     unless ($COMPLEX{$encompasser}{$controller}) {
+        Encomp::Util::load_class($controller);
         my $c_plugins = $controller ->composite->seek_all_plugins;
         my $e_plugins = $encompasser->composite->seek_all_plugins;
         my $methods   =

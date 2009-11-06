@@ -130,15 +130,8 @@ __END__
 
 Encomp::Util - Utility Class
 
-=head1 AUTHOR
-
-Satoshi Ohkubo E<lt>s.ohkubo@gmail.comE<gt>
-
-=head1 LICENSE
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
 =head1 SEE ALSO
+
+Mouse::Util
 
 =cut
