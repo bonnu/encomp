@@ -10,7 +10,7 @@ Encomp::Exporter->setup_suger_features(
 );
 
 sub processes {
-    caller->node->append_nodes({ level => 1 }, @_);
+    caller->node->append_nodes(@_);
 }
 
 sub hook_to {

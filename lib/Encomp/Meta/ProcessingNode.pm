@@ -46,8 +46,7 @@ sub _is_node {
 }
 
 sub append_nodes {
-    my ($self, $args, @nodes) = @_;
-    my $level = exists $args->{level} ? delete $args->{level} : 0;
+    my ($self, @nodes) = @_;
     while (my $id = shift @nodes) {
         my $node;
         if (_is_node($id)) {
@@ -57,9 +56,7 @@ sub append_nodes {
             $node = $self->get_root->new($id, $self);
         }
         if (0 < @nodes && ref $nodes[0] eq 'ARRAY') {
-            $node->append_nodes(
-                { %{ $args }, level => $level + 1 }, @{ shift @nodes },
-            );
+            $node->append_nodes(@{ shift @nodes });
         }
     }
 }
@@ -69,17 +66,17 @@ sub invoke {
     my $context = Encomp::Context->new;
     do {
         last if $context->return;
-        $self->traverse($context, $callback);
+        $self->_traverse($context, $callback);
     } while ($context->goto);
 }
 
-sub traverse {
+sub _traverse {
     my ($self, $context, $callback) = @_;
     my $ret = 1;
     $ret = $callback->($self, $context) unless $context->skip;
     return BREAK if $context->return;
     if ($ret) {
-        map { return BREAK unless $_->traverse($context, $callback) }
+        map { return BREAK unless $_->_traverse($context, $callback) }
             @{ $self->{_children} }
     }
     return CONTINUE;
