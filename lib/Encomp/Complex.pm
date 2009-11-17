@@ -21,6 +21,7 @@ sub _initialize {
     if (_conflate($encompasser, $controller)) {
         no strict 'refs';
         *{$ns . '::AUTOLOAD'} = \&_autoload;
+        *{$ns . '::can'}      = \&_can;
         *{$ns . '::complex'}  = sub { $COMPLEX{$encompasser}{$controller} };
     }
     return $ns;
@@ -36,12 +37,10 @@ sub _conflate {
     $COMPLEX{$encompasser} ||= {};
     unless ($COMPLEX{$encompasser}{$controller}) {
         Encomp::Util::load_class($controller);
-        my $c_plugins = $controller ->composite->seek_all_plugins;
-        my $e_plugins = $encompasser->composite->seek_all_plugins;
-        my $methods   =
-            _conflate_methods(@{$c_plugins}, $controller, @{$e_plugins});
-        my $hooks     =
-            _conflate_hooks(@{$c_plugins}, $controller, @{$e_plugins}, $encompasser);
+        my $plugins   = $controller ->composite->seek_all_plugins;
+        my $plugins_e = $encompasser->composite->seek_all_plugins;
+        my $methods   = _conflate_methods(@{$plugins}, $controller, @{$plugins_e});
+        my $hooks     = _conflate_hooks(@{$plugins}, $controller, @{$plugins_e}, $encompasser);
         $COMPLEX{$encompasser}{$controller} = {
             methods => $methods,
             hooks   => $hooks,
@@ -67,28 +66,32 @@ sub _conflate_hooks {
     my (@classes) = @_;
     my %hooks;
     for my $class (uniq @classes) {
-        my $hook = $class->composite->hook;
-        for my $point (keys %{$hook}) {
-            push @{$hooks{$point} ||= []}, @{$hook->{$point}};
+        my $hooks = $class->composite->hooks;
+        for my $point (keys %{$hooks}) {
+            push @{$hooks{$point} ||= []}, @{$hooks->{$point}};
         }
     }
     \%hooks;
 }
 
 sub _autoload {
-    my $self = shift;
-    my $name = our $AUTOLOAD;
+    my $proto = shift;
+    my $name  = our $AUTOLOAD;
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
     my $ns = $1;
-    if (my $code = $self->complex->{methods}{$name}) {
+    if (my $code = $proto->complex->{methods}{$name}) {
         do {
             no strict 'refs';
             *{$ns . '::' . $name} = $code;
         };
-        return wantarray ? ($code->($self, @_)) : $code->($self, @_);
+        return wantarray ? ($code->($proto, @_)) : $code->($proto, @_);
     }
-    croak qq{Can't locate object method "$name" via package "} . (ref $self || $self) . '"';
+    croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
+}
+
+sub _can {
+    $_[0]->complex->{methods}{$_[1]} || UNIVERSAL::can(@_);
 }
 
 sub clean {

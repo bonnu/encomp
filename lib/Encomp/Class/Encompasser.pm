@@ -25,6 +25,7 @@ sub operate {
             return 1;
         });
     };
+    die $@ if $@;
     Encomp::Complex->clean($obj);
 }
 

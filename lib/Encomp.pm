@@ -10,15 +10,18 @@ Encomp::Exporter->setup_suger_features(
 );
 
 sub processes {
-    caller->node->append_nodes(@_);
+    my $class = caller;
+    $class->node->append_nodes(@_);
 }
 
 sub hook_to {
-    caller->composite->add_hook(@_);
+    my $class = caller;
+    $class->composite->add_hook(@_);
 }
 
 sub plugins {
-    caller->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
+    my $class = caller;
+    $class->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
 }
 
 1;

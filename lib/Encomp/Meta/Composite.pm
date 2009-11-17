@@ -7,20 +7,21 @@ use Encomp::Util;
 sub new {
     my $class = shift;
     bless {
-        hook    => {},
-        plugins => [],
+        hooks      => {},
+        plugins    => [],
+        properties => [],
     }, $class;
 }
 
-sub hook    { $_[0]->{hook} }
-sub plugins { $_[0]->{plugins} }
+sub hooks      { $_[0]->{hooks} }
+sub plugins    { $_[0]->{plugins} }
+sub properties { $_[0]->{properties} }
 
 sub seek_all_plugins {
     my ($self, $plugins) = @_;
     $plugins ||= [];
     for my $plugin (@{$self->plugins}) {
         unless (grep { $_ eq $plugin } @{$plugins}) {
-            Encomp::Util::load_class($plugin);
             push @{$plugins}, $plugin;
             $plugin->composite->seek_all_plugins($plugins);
         }
@@ -30,12 +31,18 @@ sub seek_all_plugins {
 
 sub add_hook {
     my ($self, $hook, $callback) = @_;
-    push @{$self->hook->{$hook} ||= []}, $callback;
+    push @{$self->hooks->{$hook} ||= []}, $callback;
 }
 
 sub add_plugins {
     my ($self, @plugins) = @_;
+    Encomp::Util::load_class($_) for @plugins;
     push @{$self->plugins}, @plugins;
+}
+
+sub add_property {
+    my ($self, $name, $code) = @_;
+    push @{$self->properties}, { name => $name, code => $code };
 }
 
 1;

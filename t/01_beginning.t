@@ -1,17 +1,13 @@
 use strict;
 use warnings;
 use Test::More 'no_plan';
-use Benchmark qw/cmpthese timethese/;
 use Class::Inspector;
-use Data::Dumper;
 
 ENCOMPASSER_DEFINITION_BLOCK :
 {
     package Foo;
 
     use Encomp;
-
-    plugins 'Foo::Plugin::A';
 
     processes
         'initialize',
@@ -44,6 +40,8 @@ PLUGIN_DEFINITION_BLOCK :
         package Foo::Plugin::B;
 
         use Encomp::Plugin;
+
+        plugins 'Foo::Plugin::A';
 
         sub method_b { 'b' }
 
@@ -105,9 +103,12 @@ ok  +Foo::Controller->isa('Encomp::Class::Controller');
 
 Foo->operate('Foo::Controller');
 
+ok  +Foo::__complex__::Foo::Controller->can('method_a');
+
 is_deeply +Class::Inspector->methods('Foo::__complex__::Foo::Controller'),
     [qw/
         AUTOLOAD
+        can
         complex
         method_a
         method_b
@@ -115,5 +116,5 @@ is_deeply +Class::Inspector->methods('Foo::__complex__::Foo::Controller'),
         test_01
         test_02
         test_03
-    /];
-
+    /],
+    'deeply';

@@ -10,23 +10,25 @@ processes qw/
 
 plugins 'DemoFW::Plugin::Response';
 
-hook_to '/initialize'
-=> sub {
+hook_to '/initialize' =>
+sub {
     my ($self, $context, @args) = @_;
     return 1;
 };
 
-hook_to '/main'
-=> sub {
+hook_to '/main' =>
+sub {
     my ($self, $context, @args) = @_;
     $self->dispatch;
     return 1;
 };
 
-hook_to '/finalize'
-=> sub {
+hook_to '/finalize' =>
+sub {
     my ($self, $context, @args) = @_;
-    $self->output;
+    print $self->headers_out;
+    print "\n";
+    print $self->output;
     return 1;
 };
 
