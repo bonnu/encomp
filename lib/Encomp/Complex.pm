@@ -94,8 +94,9 @@ sub _can {
     $_[0]->complex->{methods}{$_[1]} || UNIVERSAL::can(@_);
 }
 
-sub clean {
+sub dischain {
     my ($class, $obj) = @_;
+    return $obj;
 }
 
 1;

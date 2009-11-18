@@ -5,25 +5,32 @@ use warnings;
 use Encomp::Util;
 
 sub new {
-    my $class = shift;
+    my ($class, $applicant) = @_;
     bless {
+        applicant  => $applicant,
         hooks      => {},
         plugins    => [],
         properties => [],
     }, $class;
 }
 
+sub applicant  { $_[0]->{applicant} }
 sub hooks      { $_[0]->{hooks} }
 sub plugins    { $_[0]->{plugins} }
 sub properties { $_[0]->{properties} }
 
 sub seek_all_plugins {
-    my ($self, $plugins) = @_;
+    my ($self, $plugins, $callers) = @_;
     $plugins ||= [];
+    $callers ||= [];
+    push @{$callers}, $self->applicant;
     for my $plugin (@{$self->plugins}) {
-        unless (grep { $_ eq $plugin } @{$plugins}) {
+        unless (
+            grep { $_ eq $plugin } @{$plugins} ||
+            grep { $_ eq $plugin } @{$callers}
+        ) {
+            $plugin->composite->seek_all_plugins($plugins, $callers);
             push @{$plugins}, $plugin;
-            $plugin->composite->seek_all_plugins($plugins);
         }
     }
     $plugins;

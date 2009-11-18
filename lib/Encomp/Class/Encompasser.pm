@@ -6,7 +6,7 @@ use Encomp::Meta::Composite;
 use Encomp::Meta::ProcessingNode;
 
 Encomp::Class->setup_metadata(
-    composite => sub { Encomp::Meta::Composite->new },
+    composite => sub { Encomp::Meta::Composite->new(@_) },
     node      => sub { Encomp::Meta::ProcessingNode->new },
 );
 
@@ -26,7 +26,7 @@ sub operate {
         });
     };
     die $@ if $@;
-    Encomp::Complex->clean($obj);
+    Encomp::Complex->dischain($obj);
 }
 
 1;
