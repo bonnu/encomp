@@ -38,9 +38,10 @@ sub _build_spec {
     if (my $load_class = $SPEC{$promoter}{applicant_isa} = $args{applicant_isa}) {
         Encomp::Util::load_class($load_class);
     }
-    $SPEC{$promoter}{setup}    = $args{setup};
-    $SPEC{$promoter}{as_is}    = $args{as_is} || [];
-    $SPEC{$promoter}{metadata} = $args{metadata} || undef;
+    $SPEC{$promoter}{setup}            = $args{setup};
+    $SPEC{$promoter}{as_is}            = $args{as_is} || [];
+    $SPEC{$promoter}{metadata}         = $args{metadata} || undef;
+    $SPEC{$promoter}{plugin_namespace} = $args{plugin_namespace};
 }
 
 sub _build_import {
@@ -48,8 +49,8 @@ sub _build_import {
     sub {
         $^H             |= _strict_bits;         # strict->import;
         ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
-        my $class  = shift;
-        my $caller = scalar caller;
+        my ($class, @plugins) = @_;
+        my $caller  = scalar caller;
         return if $class  ne $promoter;
         return if $caller eq 'main';
         my $isa    = do { no strict 'refs'; \@{$caller . '::ISA'} };

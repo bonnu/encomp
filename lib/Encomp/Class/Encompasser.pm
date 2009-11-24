@@ -25,8 +25,12 @@ sub operate {
             return 1;
         });
     };
-    die $@ if $@;
-    Encomp::Complex->dischain($obj);
+    my $err = $@;
+    my $ret = Encomp::Complex->dischain($obj);
+    if ($err) {
+        die $err;
+    }
+    return $ret;
 }
 
 1;

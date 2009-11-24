@@ -41,10 +41,9 @@ sub _conflate {
         my $plugins_e = $encompasser->composite->seek_all_plugins;
         my $methods   = _conflate_methods(@{$plugins}, $controller, @{$plugins_e});
         my $hooks     = _conflate_hooks(@{$plugins}, $controller, @{$plugins_e}, $encompasser);
-        $COMPLEX{$encompasser}{$controller} = {
-            methods => $methods,
-            hooks   => $hooks,
-        };
+        my %any       = (methods => $methods, hooks => $hooks);
+        _conflate_any(\%any, $plugins, $controller, $plugins_e, $encompasser);
+        $COMPLEX{$encompasser}{$controller} = \%any;
         return 1;
     }
     return 0;
@@ -57,7 +56,7 @@ sub _conflate_methods {
         my $entries = do { no strict 'refs'; \%{$class . '::'} };
         %methods = (%methods, %{$entries});
     }
-    delete $methods{$_} for qw/__ANON__ ISA BEGIN can isa/;
+    delete $methods{$_} for qw/__ANON__ ISA BEGIN can isa/, grep /^_/, keys %methods;
     map { /::$/o && delete $methods{$_} } keys %methods;
     \%methods;
 }
@@ -72,6 +71,9 @@ sub _conflate_hooks {
         }
     }
     \%hooks;
+}
+
+sub _conflate_any {
 }
 
 sub _autoload {

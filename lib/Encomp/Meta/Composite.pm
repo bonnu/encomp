@@ -10,14 +10,12 @@ sub new {
         applicant  => $applicant,
         hooks      => {},
         plugins    => [],
-        properties => [],
     }, $class;
 }
 
-sub applicant  { $_[0]->{applicant} }
-sub hooks      { $_[0]->{hooks} }
-sub plugins    { $_[0]->{plugins} }
-sub properties { $_[0]->{properties} }
+sub applicant { $_[0]->{applicant} }
+sub hooks     { $_[0]->{hooks}     }
+sub plugins   { $_[0]->{plugins}   }
 
 =caller
 sub seek_all_plugins {
@@ -59,11 +57,6 @@ sub add_plugins {
     my ($self, @plugins) = @_;
     Encomp::Util::load_class($_) for @plugins;
     push @{$self->plugins}, @plugins;
-}
-
-sub add_property {
-    my ($self, $name, $code) = @_;
-    push @{$self->properties}, { name => $name, code => $code };
 }
 
 1;

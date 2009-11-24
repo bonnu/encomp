@@ -1,21 +1,39 @@
-package Encomp::Plugin;
+package Encomp::Plugin::Util;
 
 use Encomp::Exporter;
 
 Encomp::Exporter->setup_suger_features(
-    applicant_isa    => 'Encomp::Class::Plugin',
-    as_is            => [qw/hook_to plugins/],
-    plugin_namespace => __PACKAGE__,
+    metadata => {
+        plugin_util => sub { Encomp::Meta::Composite::PluginUtil->new(@_) },
+    },
+    as_is    => [qw/property accessor/],
 );
 
-sub hook_to {
+sub property {
     my $class = caller;
-    $class->composite->add_hook(@_);
+    $class->plugin_util->add_property(@_);
 }
 
-sub plugins {
+sub accessor {
     my $class = caller;
-    $class->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
+    $class->plugin_util->add_accessor(@_);
+}
+
+{
+    package #
+        Encomp::Meta::Composite::PluginUtil;
+
+    use strict;
+    use warnings;
+    use base qw/Encomp::Meta::Composite/;
+
+    sub properties { $_[0]->{properties} ||= [] }
+    sub accessors  { $_[0]->{accessors}  ||= [] }
+
+    sub add_property {
+        my $self = shift;
+        push @{ $self->properties }, @_;
+    }
 }
 
 1;
