@@ -56,8 +56,9 @@ sub _build_import {
         return if $caller eq 'main';
         my @loaded = _load_addons($class, @addons);
         my $isa    = do { no strict 'refs'; \@{$caller . '::ISA'} };
-        for my $super (@loaded, reverse @{Encomp::Util::get_linear_isa($class)}) {
-            my ($base, $metadata, $setup) = @{$SPEC{$super}}{qw/applicant_isa metadata setup/};
+        for my $super (reverse(@{Encomp::Util::get_linear_isa($class)}), @loaded) {
+            my ($base, $metadata, $setup) =
+                @{$SPEC{$super}}{qw/applicant_isa metadata setup/};
             if ($base) {
                 unshift @{$isa}, $base unless grep m!\A$base\Z!, @{$isa};
                 Encomp::Class->install_metadata($caller, $base);
@@ -76,7 +77,7 @@ sub _build_import {
                 $setup->($class, $caller);
             }
         }
-        $ADDED{"$class\+$caller"} = \@loaded if 0 < @loaded;
+        ${$ADDED{$class} ||= {}}{$caller} = \@loaded if 0 < @loaded;
     }
 }
 
@@ -86,8 +87,9 @@ sub _build_unimport {
         my $class  = shift;
         my $caller = scalar caller;
         my $stash  = do { no strict 'refs'; \%{$caller . '::'} };
-        for my $isa (@{ Encomp::Util::get_linear_isa($class) }) {
-            my $export = do { no strict 'refs'; \@{$isa . '::EXPORT'} };
+        my @addons = exists $ADDED{$class}{$caller} ? @{$ADDED{$class}{$caller}} : ();
+        for my $super (reverse(@addons), @{Encomp::Util::get_linear_isa($class)}) {
+            my $export = do { no strict 'refs'; \@{$super . '::EXPORT'} };
             delete $stash->{$_} for @{$export};
         }
         return 1;

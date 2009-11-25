@@ -4,16 +4,15 @@ use Test::More 'no_plan';
 
 BEGIN {
     package Foo::Plugin;
-    use Encomp::Plugin qw/+Accessor/;
+    use Encomp::Plugin qw/+Accessor +ClassAccessor/;
     accessor 'hello';
+    class_accessor 'config';
     no  Encomp::Plugin;
 }
 
 package Foo;
 use Encomp;
-processes qw/
-    foo bar baz
-/;
+processes qw/foo bar baz/;
 no  Encomp;
 
 package Foo::Controller;
@@ -34,6 +33,12 @@ hook_to '/baz' => sub {
     ::is    +$self->hello, 'hello world';
 };
 
+no  Encomp::Controller;
+
 package main;
 
+use Class::Inspector;
+use Data::Dumper;
+
+print Dumper([ Class::Inspector->methods('Foo::Plugin')]);
 Foo->operate('Foo::Controller');
