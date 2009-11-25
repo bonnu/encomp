@@ -3,9 +3,9 @@ package Encomp::Plugin;
 use Encomp::Exporter;
 
 Encomp::Exporter->setup_suger_features(
-    applicant_isa    => 'Encomp::Class::Plugin',
-    as_is            => [qw/hook_to plugins/],
-    plugin_namespace => __PACKAGE__,
+    applicant_isa   => 'Encomp::Class::Plugin',
+    as_is           => [qw/hook_to plugins/],
+    addon_namespace => 'Encomp::Plugin',
 );
 
 sub hook_to {

@@ -4,9 +4,7 @@ use Test::More 'no_plan';
 
 BEGIN {
     package Foo::Plugin;
-    use Encomp::Plugin qw/
-        +Accessor +Class::Accessor
-    /;
+    use Encomp::Plugin qw/+Accessor/;
     accessor 'hello';
     no  Encomp::Plugin;
 }
@@ -36,4 +34,6 @@ hook_to '/baz' => sub {
     ::is    +$self->hello, 'hello world';
 };
 
+package main;
 
+Foo->operate('Foo::Controller');

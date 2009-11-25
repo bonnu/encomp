@@ -8,6 +8,7 @@ use Encomp::Class;
 use Encomp::Util;
 
 my %SPEC;
+my %ADDED;
 
 use constant _strict_bits => strict::bits(qw/subs refs vars/);
 
@@ -38,23 +39,24 @@ sub _build_spec {
     if (my $load_class = $SPEC{$promoter}{applicant_isa} = $args{applicant_isa}) {
         Encomp::Util::load_class($load_class);
     }
-    $SPEC{$promoter}{setup}            = $args{setup};
-    $SPEC{$promoter}{as_is}            = $args{as_is} || [];
-    $SPEC{$promoter}{metadata}         = $args{metadata} || undef;
-    $SPEC{$promoter}{plugin_namespace} = $args{plugin_namespace};
+    $SPEC{$promoter}{setup}           = $args{setup};
+    $SPEC{$promoter}{as_is}           = $args{as_is}           || [];
+    $SPEC{$promoter}{metadata}        = $args{metadata}        || undef;
+    $SPEC{$promoter}{addon_namespace} = $args{addon_namespace} || $promoter;
 }
 
 sub _build_import {
-    my ($class, $promoter) = @_;
+    my (undef, $promoter) = @_;
     sub {
         $^H             |= _strict_bits;         # strict->import;
         ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
-        my ($class, @plugins) = @_;
-        my $caller  = scalar caller;
+        my ($class, @addons) = @_;
+        my $caller = scalar caller;
         return if $class  ne $promoter;
         return if $caller eq 'main';
+        my @loaded = _load_addons($class, @addons);
         my $isa    = do { no strict 'refs'; \@{$caller . '::ISA'} };
-        for my $super (reverse @{Encomp::Util::get_linear_isa($class)}) {
+        for my $super (@loaded, reverse @{Encomp::Util::get_linear_isa($class)}) {
             my ($base, $metadata, $setup) = @{$SPEC{$super}}{qw/applicant_isa metadata setup/};
             if ($base) {
                 unshift @{$isa}, $base unless grep m!\A$base\Z!, @{$isa};
@@ -74,6 +76,7 @@ sub _build_import {
                 $setup->($class, $caller);
             }
         }
+        $ADDED{"$class\+$caller"} = \@loaded if 0 < @loaded;
     }
 }
 
@@ -94,6 +97,17 @@ sub _build_unimport {
 sub _build_export {
     my ($class, $promoter) = @_;
     @{$SPEC{$promoter}{as_is}};
+}
+
+sub _load_addons {
+    my ($class, @addons) = @_;
+    my @loaded;
+    my $namespace = $SPEC{$class}{addon_namespace};
+    for my $addon (@addons) {
+        $addon =~ s/^\+/$namespace\::/;
+        push @loaded, $addon if Encomp::Util::load_class($addon);
+    }
+    return @loaded;
 }
 
 1;
