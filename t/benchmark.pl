@@ -64,6 +64,6 @@ CONTROLLER_DEFINITION_BLOCK :
     no  Encomp::Controller;
 }
 
-cmpthese(10000, {
+cmpthese(100000, {
     'operate' => sub { Foo->operate('Foo::Controller') },
 });
