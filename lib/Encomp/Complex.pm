@@ -11,14 +11,19 @@ sub all_complex { \%COMPLEX }
 
 sub build {
     my $class = shift;
-    my $ns    = $class->_initialize(@_);
+    my $ns    = _initialize(@_);
     bless {}, $ns;
 }
 
+sub dischain {
+    my ($class, $obj) = @_;
+    return $obj;
+}
+
 sub _initialize {
-    my ($class, $encompasser, $controller) = @_;
-    my $ns = _generate_ns($encompasser, $controller);
-    if (_conflate($encompasser, $controller)) {
+    my ($encompasser, $controller, $plugins) = _initial_args(@_);
+    my $ns = _generate_ns($encompasser, $controller, $plugins);
+    if (_conflate($encompasser, $controller, $plugins)) {
         no strict 'refs';
         *{$ns . '::AUTOLOAD'} = \&_autoload;
         *{$ns . '::can'}      = \&_can;
@@ -27,22 +32,36 @@ sub _initialize {
     return $ns;
 }
 
-sub _generate_ns {
+sub _initial_args {
     my ($encompasser, $controller) = @_;
+    my @plugins;
+    if (ref $controller eq 'ARRAY') {
+        @plugins    = @{ $controller };
+        $controller = shift @plugins;
+    }
+    return ($encompasser, $controller, \@plugins);
+}
+
+sub _generate_ns {
+    my ($encompasser, $controller, $plugins) = @_;
     my $ns = join '::', $encompasser, '__complex__', $controller;
 }
 
 sub _conflate {
-    my ($encompasser, $controller) = @_;
+    my ($encompasser, $controller, $plugins) = @_;
     $COMPLEX{$encompasser} ||= {};
     unless ($COMPLEX{$encompasser}{$controller}) {
-        Encomp::Util::load_class($controller);
-        my $plugins   = $controller ->composite->seek_all_plugins;
+        for my $class ($controller, @{$plugins}) {
+            Encomp::Util::load_class($class);
+        }
+        my %any;
+        my $plugins_c = $controller ->composite->seek_all_plugins;
         my $plugins_e = $encompasser->composite->seek_all_plugins;
-        my $methods   = _conflate_methods(@{$plugins}, $controller, @{$plugins_e});
-        my $hooks     = _conflate_hooks(@{$plugins}, $controller, @{$plugins_e}, $encompasser);
-        my %any       = (methods => $methods, hooks => $hooks);
-        _conflate_any(\%any, $plugins, $controller, $plugins_e, $encompasser);
+        @any{qw/methods hooks/} = (
+            _conflate_methods(@{$plugins_c}, $controller, @{$plugins_e}, $plugins),
+            _conflate_hooks  (@{$plugins_c}, $controller, @{$plugins_e}, $encompasser, @{$plugins}),
+        );
+        _conflate_any(\%any, $plugins_c, $controller, $plugins_e, $encompasser, $plugins);
         $COMPLEX{$encompasser}{$controller} = \%any;
         return 1;
     }
@@ -94,11 +113,6 @@ sub _autoload {
 
 sub _can {
     $_[0]->complex->{methods}{$_[1]} || UNIVERSAL::can(@_);
-}
-
-sub dischain {
-    my ($class, $obj) = @_;
-    return $obj;
 }
 
 1;
