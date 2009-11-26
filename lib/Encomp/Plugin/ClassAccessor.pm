@@ -4,7 +4,7 @@ use Encomp::Exporter;
 
 # Class::Data::Accessor is respected.
 
-use Carp qw/croak/;
+use Carp qw/carp croak/;
 use Sub::Name ();
 
 Encomp::Exporter->setup_suger_features(as_is => [qw/class_accessor/]);
@@ -18,7 +18,7 @@ sub class_accessor {
 sub _make_class_accessor {
     my ($class, $field, $data) = @_;
     if (ref $class) {
-        croak "mk_classaccessor() is a class method, not an object method";
+        croak "_make_class_accessor() is like a class method, not an object method.";
     }
     for my $reserved (qw/DESTROY AUTOLOAD/) {
         croak "Having a data accessor named $reserved in '$class' is unwise."
@@ -27,11 +27,12 @@ sub _make_class_accessor {
     my $accessor = _make_class_data_accessor($class, $field, $data);
     my $fullname = "${class}::$field";
     if (defined &{$fullname}) {
-        croak "$fullname accessor has been defined.";
+        carp "$fullname accessor has been defined.";
     }
     Sub::Name::subname($fullname, $accessor);
     do {
-        no strict qw/refs/;
+        no warnings 'redefine';
+        no strict   'refs';
         *{$fullname} = $accessor;
     };
 }
