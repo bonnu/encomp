@@ -103,9 +103,10 @@ ok  +Foo::Controller->isa('Encomp::Class::Controller');
 
 Foo->operate('Foo::Controller');
 
-ok  +Foo::__complex__::Foo::Controller->can('method_a');
+ok  +Foo::_complexed::Foo::Controller->can('method_a');
 
-is_deeply +Class::Inspector->methods('Foo::__complex__::Foo::Controller'),
+is_deeply
+    +Class::Inspector->methods('Foo::_complexed::Foo::Controller'),
     [qw/
         AUTOLOAD
         can

@@ -27,7 +27,8 @@ sub _make_class_accessor {
     my $accessor = _make_class_data_accessor($class, $field, $data);
     my $fullname = "${class}::$field";
     if (defined &{$fullname}) {
-        carp "$fullname accessor has been defined.";
+        carp "$fullname accessor has been defined."
+            unless do { no strict 'refs'; defined &{"${class}::complex"} };
     }
     Sub::Name::subname($fullname, $accessor);
     do {

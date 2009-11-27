@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 use List::MoreUtils qw/uniq/;
+use Digest::MD5 qw/md5_hex/;
 
 my %COMPLEX;
 
@@ -21,67 +22,90 @@ sub dischain {
 }
 
 sub _initialize {
-    my ($encompasser, $controller, $plugins) = _initial_args(@_);
-    my $ns = _generate_ns($encompasser, $controller, $plugins);
-    if (_conflate($encompasser, $controller, $plugins)) {
-        no strict 'refs';
-        *{$ns . '::AUTOLOAD'} = \&_autoload;
-        *{$ns . '::can'}      = \&_can;
-        *{$ns . '::complex'}  = sub { $COMPLEX{$encompasser}{$controller} };
+    my ($encompasser, $controller, $adhoc) = _initial_args(@_);
+    my $adhoc_digest = _generate_adhoc_digest($adhoc);
+    my $namespace    = _generate_namespace($encompasser, $controller, $adhoc_digest);
+    if (my $complex  = _generate_complex($encompasser, $controller, $adhoc_digest)) {
+        _conflate($complex, $encompasser, $controller, $adhoc);
+        {
+            no strict 'refs';
+            *{"${namespace}::AUTOLOAD"} = \&_autoload;
+            *{"${namespace}::can"}      = \&_can;
+            *{"${namespace}::complex"}  = sub { $complex };
+        }
     }
-    return $ns;
+    return $namespace;
 }
 
 sub _initial_args {
     my ($encompasser, $controller) = @_;
-    my @plugins;
+    my @adhoc;
     if (ref $controller eq 'ARRAY') {
-        @plugins    = @{ $controller };
-        $controller = shift @plugins;
+        @adhoc      = @{$controller};
+        $controller = shift @adhoc;
     }
-    return ($encompasser, $controller, \@plugins);
+    return ($encompasser, $controller, \@adhoc);
 }
 
-sub _generate_ns {
-    my ($encompasser, $controller, $plugins) = @_;
-    my $ns = join '::', $encompasser, '__complex__', $controller;
+sub _generate_adhoc_digest {
+    my $adhoc  = shift;
+    my $digest = md5_hex(join '', sort @{$adhoc}) if 0 < @{$adhoc};
+    return $digest;
+}
+
+sub _generate_namespace {
+    my ($encompasser, $controller, $adhoc_digest) = @_;
+    return join '::',
+        $encompasser, '_complexed', $controller, $adhoc_digest ? $adhoc_digest : ();
+}
+
+sub _generate_complex {
+    my ($encompasser, $controller, $adhoc_digest) = @_;
+    my $complex = \%COMPLEX;
+    for ($encompasser, $controller, $adhoc_digest || '_') {
+        $complex = $complex->{$_} ||= {};
+    }
+    return if 0 < keys %{$complex};
+    return $complex;
 }
 
 sub _conflate {
-    my ($encompasser, $controller, $plugins) = @_;
-    $COMPLEX{$encompasser} ||= {};
-    unless ($COMPLEX{$encompasser}{$controller}) {
-        for my $class ($controller, @{$plugins}) {
-            Encomp::Util::load_class($class);
-        }
-        my %any;
-        my $plugins_c = $controller ->composite->seek_all_plugins;
-        my $plugins_e = $encompasser->composite->seek_all_plugins;
-        @any{qw/methods hooks/} = (
-            _conflate_methods(@{$plugins_c}, $controller, @{$plugins_e}, $plugins),
-            _conflate_hooks  (@{$plugins_c}, $controller, @{$plugins_e}, $encompasser, @{$plugins}),
-        );
-        _conflate_any(\%any, $plugins_c, $controller, $plugins_e, $encompasser, $plugins);
-        $COMPLEX{$encompasser}{$controller} = \%any;
-        return 1;
+    my ($complex, $encompasser, $controller, $adhoc) = @_;
+    for my $class ($controller, @{$adhoc}) {
+        Encomp::Util::load_class($class);
     }
-    return 0;
+    my $plugins_c = $controller ->composite->seek_all_plugins;
+    my $plugins_e = $encompasser->composite->seek_all_plugins;
+    my @args      = (
+        $complex,
+        $plugins_c, $controller,
+        $plugins_e, $encompasser,
+        $adhoc,
+    );
+    _conflate_methods(@args);
+    _conflate_hooks  (@args);
+    _conflate_any    (@args);
+    return 1;
 }
 
 sub _conflate_methods {
-    my (@classes) = @_;
+    my ($complex, $plugins_c, $controller, $plugins_e, $encompasser, $adhoc) = @_;
+    # $e doesn't target.
+    my @classes = (@{$plugins_c}, $controller, @{$plugins_e}, @{$adhoc});
     my %methods;
     for my $class (uniq @classes) {
         my $entries = do { no strict 'refs'; \%{$class . '::'} };
         %methods = (%methods, %{$entries});
     }
-    delete $methods{$_} for qw/__ANON__ ISA BEGIN can isa/, grep /^_/, keys %methods;
+    delete $methods{$_}
+        for qw/__ANON__ ISA BEGIN can isa/, grep /^_/, keys %methods;
     map { /::$/o && delete $methods{$_} } keys %methods;
-    \%methods;
+    $complex->{methods} = \%methods;
 }
 
 sub _conflate_hooks {
-    my (@classes) = @_;
+    my ($complex, $plugins_c, $controller, $plugins_e, $encompasser, $adhoc) = @_;
+    my @classes = (@{$plugins_c}, $controller, @{$plugins_e}, $encompasser, @{$adhoc});
     my %hooks;
     for my $class (uniq @classes) {
         my $hooks = $class->composite->hooks;
@@ -89,7 +113,7 @@ sub _conflate_hooks {
             push @{$hooks{$point} ||= []}, @{$hooks->{$point}};
         }
     }
-    \%hooks;
+    $complex->{hooks} = \%hooks;
 }
 
 sub _conflate_any {
