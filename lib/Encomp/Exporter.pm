@@ -39,10 +39,10 @@ sub _build_spec {
     if (my $load_class = $SPEC{$promoter}{applicant_isa} = $args{applicant_isa}) {
         Encomp::Util::load_class($load_class);
     }
-    $SPEC{$promoter}{setup}           = $args{setup};
-    $SPEC{$promoter}{as_is}           = $args{as_is}           || [];
-    $SPEC{$promoter}{metadata}        = $args{metadata}        || undef;
-    $SPEC{$promoter}{addon_namespace} = $args{addon_namespace} || $promoter;
+    $SPEC{$promoter}{setup}       = $args{setup};
+    $SPEC{$promoter}{as_is}       = $args{as_is}       || [];
+    $SPEC{$promoter}{metadata}    = $args{metadata}    || undef;
+    $SPEC{$promoter}{specific_ns} = $args{specific_ns} || $promoter;
 }
 
 sub _build_import {
@@ -82,7 +82,7 @@ sub _build_import {
 }
 
 sub _build_unimport {
-    my ($class, $promoter) = @_;
+    my (undef, $promoter) = @_;
     sub {
         my $class  = shift;
         my $caller = scalar caller;
@@ -104,7 +104,7 @@ sub _build_export {
 sub _load_addons {
     my ($class, @addons) = @_;
     my @loaded;
-    my $namespace = $SPEC{$class}{addon_namespace};
+    my $namespace = $SPEC{$class}{specific_ns};
     for my $addon (@addons) {
         $addon =~ s/^\+/$namespace\::/;
         push @loaded, $addon if Encomp::Util::load_class($addon);

@@ -1,4 +1,4 @@
-package Encomp::Plugin::ClassAccessor;
+package Encomp::Specific::ClassAccessor;
 
 use Encomp::Exporter;
 

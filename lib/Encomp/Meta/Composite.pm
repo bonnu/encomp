@@ -3,6 +3,7 @@ package Encomp::Meta::Composite;
 use strict;
 use warnings;
 use Encomp::Util;
+use Sub::Name ();
 
 sub new {
     my ($class, $applicant) = @_;
@@ -50,7 +51,15 @@ sub seek_all_plugins {
 
 sub add_hook {
     my ($self, $hook, $callback) = @_;
-    push @{$self->hooks->{$hook} ||= []}, $callback;
+    my $hooks  = $self->hooks->{$hook} ||= [];
+    my $number = int @{$hooks};
+    $hook =~ s!/!_!go;
+    my $fullname = $self->applicant . "::$hook\_$number";
+    Sub::Name::subname($fullname, $callback);
+    do {
+        no strict 'refs';
+        push @{$hooks}, *{$fullname} = $callback;
+    };
 }
 
 sub add_plugins {
