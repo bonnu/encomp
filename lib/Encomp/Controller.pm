@@ -1,22 +1,12 @@
 package Encomp::Controller;
 
 use Encomp::Exporter;
+use parent qw/Encomp::Base/;
 
 Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Controller',
-    as_is         => [qw/hook_to plugins/],
     specific_ns   => 'Encomp::Specific',
 );
-
-sub hook_to {
-    my $class = caller;
-    $class->composite->add_hook(@_);
-}
-
-sub plugins {
-    my $class = caller;
-    $class->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
-}
 
 1;
 
@@ -32,13 +22,8 @@ Encomp::Controller - Controller
 
  use Encomp::Controller;
  
- hook_to '/initialize' => sub {
-     my $self = shift;
- };
-
- hook_to '/dispatch/main' => sub {
-     my $self = shift;
- };
+ hook_to '/initialize'    => sub { my $self = shift; ... };
+ hook_to '/dispatch/main' => sub { my $self = shift; ... };
 
  package main;
  

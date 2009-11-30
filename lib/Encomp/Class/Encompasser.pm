@@ -6,8 +6,7 @@ use Encomp::Meta::Composite;
 use Encomp::Meta::ProcessingNode;
 
 Encomp::Class->setup_metadata(
-    composite => sub { Encomp::Meta::Composite->new(@_) },
-    node      => sub { Encomp::Meta::ProcessingNode->new },
+    node => sub { Encomp::Meta::ProcessingNode->new },
 );
 
 sub operate {

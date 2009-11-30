@@ -1,27 +1,18 @@
 package Encomp;
 
 use Encomp::Exporter;
+use parent qw/Encomp::Base/;
 
 our $VERSION = '0.01';
 
 Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Encompasser',
-    as_is         => [qw/processes hook_to plugins/],
+    as_is         => [qw/processes/],
 );
 
 sub processes {
     my $class = caller;
     $class->node->append_nodes(@_);
-}
-
-sub hook_to {
-    my $class = caller;
-    $class->composite->add_hook(@_);
-}
-
-sub plugins {
-    my $class = caller;
-    $class->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
 }
 
 1;
@@ -55,7 +46,7 @@ Encomp - Composite & Encompass Model
 
 =head1 DESCRIPTION
 
-Composite Class (Controller + Role) in Encompassing Class
+Composite Class (Controller + Plugins) in Encompassing Class
 
 =head1 AUTHOR
 
