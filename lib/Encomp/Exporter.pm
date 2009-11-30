@@ -66,7 +66,7 @@ sub _build_import {
             $super->export_to_level(1, $super);
             if ($metadata && ref $metadata eq 'HASH') {
                 for my $name (keys %{$metadata}) {
-                    my $data = $metadata->{$name}->($class, $caller) or next;
+                    my $data = $metadata->{$name}->($caller) or next;
                     do {
                         no strict 'refs';
                         *{"$caller\::$name"} = sub { $data };

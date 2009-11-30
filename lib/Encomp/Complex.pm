@@ -12,8 +12,7 @@ sub all_complex { \%COMPLEX }
 
 sub build {
     my $class = shift;
-    my $ns    = _initialize(@_);
-    bless {}, $ns;
+    bless {}, _initialize(@_);
 }
 
 sub dischain {
@@ -24,8 +23,9 @@ sub dischain {
 sub _initialize {
     my ($encompasser, $controller, $adhoc) = _initial_args(@_);
     my $adhoc_digest = _generate_adhoc_digest($adhoc);
-    my $namespace    = _generate_namespace($encompasser, $controller, $adhoc_digest);
-    if (my $complex  = _generate_complex($encompasser, $controller, $adhoc_digest)) {
+    my $namespace    = _generate_namespace   ($encompasser, $controller, $adhoc_digest);
+    my $complex      = _generate_complex     ($encompasser, $controller, $adhoc_digest);
+    if ($complex) {
         _conflate($complex, $encompasser, $controller, $adhoc);
         {
             no strict 'refs';
