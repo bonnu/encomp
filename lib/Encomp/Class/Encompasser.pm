@@ -2,12 +2,9 @@ package Encomp::Class::Encompasser;
 
 use Encomp::Class;
 use Encomp::Complex;
-use Encomp::Meta::Composite;
 use Encomp::Meta::ProcessingNode;
 
-Encomp::Class->setup_metadata(
-    node => sub { Encomp::Meta::ProcessingNode->new },
-);
+Encomp::Class->setup_metadata(node => sub { Encomp::Meta::ProcessingNode->new });
 
 sub operate {
     my ($class, $controller, @args) = @_;

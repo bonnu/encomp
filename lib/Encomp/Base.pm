@@ -14,8 +14,9 @@ sub hook_to {
 }
 
 sub plugins {
-    my $class = caller;
-    $class->composite->add_plugins(ref $_[0] ? @{$_[0]} : @_);
+    my $class   = caller;
+    my @plugins = ref $_[0] ? @{$_[0]} : @_;
+    my $loaded  = $class->composite->add_plugins(@plugins);
 }
 
 1;

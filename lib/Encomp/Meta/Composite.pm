@@ -2,51 +2,47 @@ package Encomp::Meta::Composite;
 
 use strict;
 use warnings;
+use base qw/Class::Accessor::Fast/;
 use Encomp::Util;
-use Sub::Name ();
+use List::MoreUtils qw/uniq/;
+use Storable qw/dclone/;
+use Sub::Name qw/subname/;
+
+__PACKAGE__->mk_accessors qw/applicant hooks plugins _sought_plugins/;
 
 sub new {
     my ($class, $applicant) = @_;
-    bless {
-        applicant  => $applicant,
-        hooks      => {},
-        plugins    => [],
-    }, $class;
+    $class->SUPER::new({
+        applicant       => $applicant,
+        hooks           => {},
+        plugins         => [],
+        _sought_plugins => undef,
+    });
 }
 
-sub applicant { $_[0]->{applicant} }
-sub hooks     { $_[0]->{hooks}     }
-sub plugins   { $_[0]->{plugins}   }
-
-=caller
 sub seek_all_plugins {
-    my ($self, $plugins, $callers) = @_;
-    $plugins ||= [];
-    $callers ||= [];
-    push @{$callers}, $self->applicant;
-    for my $plugin (@{$self->plugins}) {
-        unless (
-            grep { $_ eq $plugin } @{$plugins} ||
-            grep { $_ eq $plugin } @{$callers}
-        ) {
-            $plugin->composite->seek_all_plugins($plugins, $callers);
-            push @{$plugins}, $plugin;
-        }
+    my ($self, $loaded) = @_;
+    $loaded ||= [];
+    if (my $sought = $self->_sought_plugins) {
+        @{$loaded} = uniq @{$loaded}, @{$sought};
     }
-    $plugins;
+    else {
+        $self->_seek_all_plugins($loaded);
+        $self->_sought_plugins(dclone $loaded);
+    }
+    return $loaded;
 }
-=cut
 
-sub seek_all_plugins {
-    my ($self, $plugins) = @_;
-    $plugins ||= [];
+sub _seek_all_plugins {
+    my ($self, $loaded) = @_;
+    $loaded ||= [];
     for my $plugin (@{$self->plugins}) {
-        unless (grep { $_ eq $plugin } @{$plugins}) {
-            $plugin->composite->seek_all_plugins($plugins);
-            push @{$plugins}, $plugin;
-        }
+        next if grep { $_ eq $plugin } @{$loaded};
+        $plugin->composite->seek_all_plugins($loaded);
+        next if grep { $_ eq $plugin } @{$loaded};
+        push @{$loaded}, $plugin;
     }
-    $plugins;
+    return $loaded;
 }
 
 sub add_hook {
@@ -55,10 +51,10 @@ sub add_hook {
     my $number = int @{$hooks};
     $hook =~ s!/!_!go;
     my $fullname = $self->applicant . "::$hook\_$number";
-    Sub::Name::subname($fullname, $callback);
-    do {
+    subname $fullname, $callback;
+    push @{$hooks}, do {
         no strict 'refs';
-        push @{$hooks}, *{$fullname} = $callback;
+        *{$fullname} = $callback;
     };
 }
 
@@ -66,6 +62,7 @@ sub add_plugins {
     my ($self, @plugins) = @_;
     Encomp::Util::load_class($_) for @plugins;
     push @{$self->plugins}, @plugins;
+    return $self->_sought_plugins(dclone $self->_seek_all_plugins);
 }
 
 1;
