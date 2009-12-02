@@ -95,7 +95,7 @@ sub _conflate {
 sub _conflate_methods {
     my ($complex, $plugins_c, $controller, $plugins_e, $encompasser, $adhoc) = @_;
     # $e doesn't target.
-    my @classes = (@{$plugins_c}, $controller, @{$plugins_e}, @{$adhoc});
+    my @classes = (@{$plugins_c}, $controller, @{$plugins_e}, $encompasser, @{$adhoc});
     my %methods;
     for my $class (uniq @classes) {
         my $entries = do { no strict 'refs'; \%{$class . '::'} };
@@ -103,9 +103,9 @@ sub _conflate_methods {
     }
     delete $methods{$_} for
         qw/__ANON__ ISA BEGIN CHECK INIT END can isa/,
-        qw/composite/,
+        qw/composite import/,
         grep /^_/, keys %methods;
-    map { /::$/o && delete $methods{$_} } keys %methods;
+    map { /(^EXPORT.*|::$)/o && delete $methods{$_} } keys %methods;
     $complex->{methods} = \%methods;
 }
 
