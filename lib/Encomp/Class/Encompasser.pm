@@ -8,14 +8,14 @@ Encomp::Class->setup_metadata(node => sub { Encomp::Meta::ProcessingNode->new })
 
 sub operate {
     my ($class, $controller, @args) = @_;
-    my $obj = Encomp::Complex->build($class => $controller);
+    my $obj   = Encomp::Complex->build($class => $controller);
+    my $hooks = $obj->complex->{hooks};
     eval {
         $class->node->invoke(sub {
             my ($self, $context) = @_;
-            if (my $hooks = $obj->complex->{hooks}{$self->get_path}) {
-                for my $code (@{$hooks}) {
-                    my $ret = $code->($obj, $context, @args);
-                    return 0 unless $ret;
+            if (my $codes = $hooks->{$self->get_path}) {
+                for my $code (@{$codes}) {
+                    $code->($obj, $context, @args);
                 }
             }
             return 1;

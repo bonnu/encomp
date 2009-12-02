@@ -2,33 +2,34 @@ package Encomp::Context;
 
 use strict;
 use warnings;
+use base qw/Class::Accessor::Fast/;
 use Carp qw/croak/;
+
+__PACKAGE__->mk_accessors qw/return skip error _goto/;
 
 sub new {
     my $class = shift;
-    my $self  = bless {
+    $class->SUPER::new({
         return  => 0,
         skip    => 0,
         errors  => [],
         current => undef,
         _goto   => undef,
-    }, $class;
-    return $self;
+    });
 }
-
-sub return { 1 < scalar @_ ? ($_[0]->{return} = $_[1]) : $_[0]->{return} }
-sub skip   { 1 < scalar @_ ? ($_[0]->{skip} = $_[1]) : $_[0]->{skip} }
-sub errors { $_[0]->{errors} }
-sub _goto  { $_[0]->{_goto} }
 
 sub current {
     my ($self, $hook) = @_;
-    return $self->{current} unless $hook;
-    $self->{current} = $hook;
-    return unless $self->{skip};
-    if ($hook eq $self->{_goto}) {
-        $self->skip(0);
-        $self->clear_goto;
+    if ($hook) {
+        $self->{current} = $hook;
+        return unless $self->{skip};
+        if ($hook eq $self->{_goto}) {
+            $self->skip(0);
+            $self->clear_goto;
+        }
+    }
+    else {
+        return $self->{current};
     }
 }
 

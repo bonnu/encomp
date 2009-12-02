@@ -11,11 +11,6 @@ use Encomp::Context;
 sub BREAK    () { 0 }
 sub CONTINUE () { 1 }
 
-sub node {
-    my ($id, $type) = @_;
-    return Encomp::ProcessingNode->new($id, undef);
-}
-
 sub new {
     my ($class, $id, $parent) = @_;
     if ($parent) {
@@ -26,7 +21,7 @@ sub new {
         $parent && croak 'id is necessary for the child.';
         $id = '/';
     }
-    my $self = $class->Tree::Simple::new({}, $parent);
+    my $self = Tree::Simple::new($class, {}, $parent);
     $self->setUID($id);
     return $self;
 }
@@ -41,13 +36,14 @@ sub is_unique_on_fraternity {
 sub _is_node {
     my $id  = shift   || return;
     my $ref = ref $id || return;
-    return if $ref =~ /\A(?:ARRAY|CODE|GLOB|HASH|REF|Regexp|SCALAR)\Z/;
+    return if $ref =~ /\A(?:ARRAY|CODE|GLOB|HASH|REF|Regexp|SCALAR)\Z/o;
     return $id->isa(__PACKAGE__);
 }
 
 sub append_nodes {
     my ($self, @nodes) = @_;
-    while (my $id = shift @nodes) {
+    while (0 < @nodes) {
+        my $id = shift @nodes;
         my $node;
         if (_is_node($id)) {
             $self->addChild($node = $id);
@@ -67,30 +63,36 @@ sub invoke {
     do {
         last if $context->return;
         $self->_traverse($context, $callback);
-    } while ($context->goto);
+    } while ($context->_goto);
 }
 
 sub _traverse {
     my ($self, $context, $callback) = @_;
+    $context->current($self);
     my $ret = 1;
     $ret = $callback->($self, $context) unless $context->skip;
     return BREAK if $context->return;
     if ($ret) {
-        map { return BREAK unless $_->_traverse($context, $callback) }
-            @{ $self->{_children} }
+        for my $node (@{ $self->{_children} }) {
+            return BREAK unless $node->_traverse($context, $callback);
+        }
     }
     return CONTINUE;
 }
 
 sub get_path {
     my $self = shift;
-    my $cur  = $self;
-    my @path;
-    until ($cur->isRoot) {
-        unshift @path, $cur->{_uid};
-        $cur = $cur->getParent;
+    my $path;
+    unless ($path = $self->{_path_compiled}) {
+        my $cur   = $self;
+        my @path;
+        until ($cur->isRoot) {
+            unshift @path, $cur->{_uid};
+            $cur = $cur->getParent;
+        }
+        $path = $self->{_path_compiled} = '/' . join '/', @path;
     }
-    return '/' . join '/', @path;
+    return $path;
 }
 
 sub get_root {
@@ -101,7 +103,7 @@ sub get_root {
 
 sub find_by_path {
     my $self = shift;
-    my @path = @_ == 1 ? split m{(?:(?<=^/)|(?<!^)/)}, $_[0] : @_;
+    my @path = @_ == 1 ? split m{(?:(?<=^/)|(?<!^)/)}o, $_[0] : @_;
     my $cur  = $self;
     if (0 < @path && $path[0] eq '/') {
         shift @path;

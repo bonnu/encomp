@@ -2,7 +2,7 @@ package Encomp::Complex;
 
 use strict;
 use warnings;
-use Carp qw/croak/;
+use Carp qw/croak confess/;
 use List::MoreUtils qw/uniq/;
 use Digest::MD5 qw/md5_hex/;
 
@@ -40,6 +40,7 @@ sub _initialize {
 sub _initial_args {
     my ($encompasser, $controller) = @_;
     my @adhoc;
+    confess 'controller name is required.' unless $controller;
     if (ref $controller eq 'ARRAY') {
         @adhoc      = @{$controller};
         $controller = shift @adhoc;
@@ -48,8 +49,11 @@ sub _initial_args {
 }
 
 sub _generate_adhoc_digest {
-    my $adhoc  = shift;
-    my $digest = md5_hex(join '', sort @{$adhoc}) if 0 < @{$adhoc};
+    my $adhoc = shift;
+    my $digest;
+    if (0 < @{$adhoc}) {
+        $digest = '_' . md5_hex(join '', sort @{$adhoc});
+    }
     return $digest;
 }
 
@@ -97,8 +101,10 @@ sub _conflate_methods {
         my $entries = do { no strict 'refs'; \%{$class . '::'} };
         %methods = (%methods, %{$entries});
     }
-    delete $methods{$_}
-        for qw/__ANON__ ISA BEGIN can isa/, grep /^_/, keys %methods;
+    delete $methods{$_} for
+        qw/__ANON__ ISA BEGIN CHECK INIT END can isa/,
+        qw/composite/,
+        grep /^_/, keys %methods;
     map { /::$/o && delete $methods{$_} } keys %methods;
     $complex->{methods} = \%methods;
 }
