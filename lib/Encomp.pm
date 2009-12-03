@@ -8,6 +8,7 @@ our $VERSION = '0.01';
 Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Encompasser',
     as_is         => [qw/processes/],
+    specific_ns   => 'Encomp::Specific',
 );
 
 sub processes {

@@ -1,10 +1,11 @@
 package Encomp::Complex;
 
-use strict;
-use warnings;
+use Encomp::Class;
+use Encomp::Util;
 use Carp qw/croak confess/;
-use List::MoreUtils qw/uniq/;
 use Digest::MD5 qw/md5_hex/;
+use List::MoreUtils qw/uniq/;
+use UNIVERSAL::can;
 
 my %COMPLEX;
 
@@ -27,12 +28,12 @@ sub _initialize {
     my $complex      = _generate_complex     ($encompasser, $controller, $adhoc_digest);
     if ($complex) {
         _conflate($complex, $encompasser, $controller, $adhoc);
-        {
-            no strict 'refs';
-            *{"${namespace}::AUTOLOAD"} = \&_autoload;
-            *{"${namespace}::can"}      = \&_can;
-            *{"${namespace}::complex"}  = sub { $complex };
-        }
+        Encomp::Class->reinstall_subroutine(
+            $namespace,
+            AUTOLOAD => \&_autoload,
+            can      => \&_can,
+            complex  => sub { $complex },
+        );
     }
     return $namespace;
 }
@@ -80,49 +81,42 @@ sub _conflate {
     }
     my $plugins_c = $controller ->composite->seek_all_plugins;
     my $plugins_e = $encompasser->composite->seek_all_plugins;
-    my @args      = (
-        $complex,
-        $plugins_c, $controller,
-        $plugins_e, $encompasser,
-        $adhoc,
+    my @classes   = uniq(
+        @{ $plugins_c }, $controller,
+        @{ $plugins_e }, $encompasser,
+        @{ $adhoc     },
     );
-    _conflate_methods(@args);
-    _conflate_hooks  (@args);
-    _conflate_any    (@args);
+    _conflate_methods($complex, @classes);
+    _conflate_hooks  ($complex, @classes);
     return 1;
 }
 
 sub _conflate_methods {
-    my ($complex, $plugins_c, $controller, $plugins_e, $encompasser, $adhoc) = @_;
-    # $e doesn't target.
-    my @classes = (@{$plugins_c}, $controller, @{$plugins_e}, $encompasser, @{$adhoc});
+    my ($complex, @classes) = @_;
     my %methods;
-    for my $class (uniq @classes) {
-        my $entries = do { no strict 'refs'; \%{$class . '::'} };
+    for my $class (@classes) {
+        my $entries = Data::Util::get_stash($class);
         %methods = (%methods, %{$entries});
     }
     delete $methods{$_} for
-        qw/__ANON__ ISA BEGIN CHECK INIT END can isa/,
-        qw/composite import/,
+        qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
+        qw/can isa import unimport/,
+        qw/composite/,
         grep /^_/, keys %methods;
     map { /(^EXPORT.*|::$)/o && delete $methods{$_} } keys %methods;
     $complex->{methods} = \%methods;
 }
 
 sub _conflate_hooks {
-    my ($complex, $plugins_c, $controller, $plugins_e, $encompasser, $adhoc) = @_;
-    my @classes = (@{$plugins_c}, $controller, @{$plugins_e}, $encompasser, @{$adhoc});
+    my ($complex, @classes) = @_;
     my %hooks;
-    for my $class (uniq @classes) {
+    for my $class (@classes) {
         my $hooks = $class->composite->hooks;
         for my $point (keys %{$hooks}) {
             push @{$hooks{$point} ||= []}, @{$hooks->{$point}};
         }
     }
     $complex->{hooks} = \%hooks;
-}
-
-sub _conflate_any {
 }
 
 sub _autoload {
@@ -142,7 +136,7 @@ sub _autoload {
 }
 
 sub _can {
-    $_[0]->complex->{methods}{$_[1]} || UNIVERSAL::can(@_);
+    $_[0]->complex->{methods}{$_[1]} || do { no warnings; UNIVERSAL::can(@_) }
 }
 
 1;

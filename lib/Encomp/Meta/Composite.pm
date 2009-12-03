@@ -5,7 +5,6 @@ use warnings;
 use base qw/Class::Accessor::Fast/;
 use Encomp::Util;
 use List::MoreUtils qw/uniq/;
-use Storable qw/dclone/;
 use Sub::Name qw/subname/;
 
 __PACKAGE__->mk_accessors qw/applicant hooks plugins _sought_plugins/;
@@ -28,7 +27,7 @@ sub seek_all_plugins {
     }
     else {
         $self->_seek_all_plugins($loaded);
-        $self->_sought_plugins(dclone $loaded);
+        $self->_sought_plugins([@{$loaded}]);
     }
     return $loaded;
 }
@@ -62,7 +61,7 @@ sub add_plugins {
     my ($self, @plugins) = @_;
     Encomp::Util::load_class($_) for @plugins;
     push @{$self->plugins}, @plugins;
-    return $self->_sought_plugins(dclone $self->_seek_all_plugins);
+    return $self->_sought_plugins([@{$self->_seek_all_plugins}]);
 }
 
 1;

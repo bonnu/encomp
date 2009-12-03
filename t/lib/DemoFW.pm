@@ -13,14 +13,12 @@ plugins 'DemoFW::Plugin::Response';
 hook_to '/initialize' =>
 sub {
     my ($self, $context, @args) = @_;
-    return 1;
 };
 
 hook_to '/main' =>
 sub {
     my ($self, $context, @args) = @_;
     $self->dispatch;
-    return 1;
 };
 
 hook_to '/finalize' =>
@@ -29,7 +27,6 @@ sub {
     print $self->headers_out;
     print "\n";
     print $self->output;
-    return 1;
 };
 
 no  Encomp;

@@ -2,6 +2,7 @@ package Encomp::Class;
 
 use strict;
 use warnings;
+use Data::Util ();
 
 use constant _strict_bits => strict::bits(qw/subs refs vars/);
 
@@ -36,6 +37,17 @@ sub install_metadata {
             *{"$applicant\::$metadata->{name}"} = sub { $data };
         };
     }
+}
+
+sub reinstall_subroutine {
+    my ($class, $applicant, @args) = @_;
+    no warnings 'redefine';
+    Data::Util::install_subroutine($applicant, @args);
+}
+
+sub uninstall_subroutine {
+    my ($class, $applicant, @args) = @_;
+    Data::Util::uninstall_subroutine($applicant, @args);
 }
 
 1;
