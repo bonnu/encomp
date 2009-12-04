@@ -36,8 +36,10 @@ hook_to '/baz' => sub {
     my $self = shift;
     ::is        +$self->hello,        'hello world';
     ::is_deeply +$self->config,       { foo => 1 }, 'refer to class data';
-    $self->config({ aaa => 2 });
-    ::is_deeply +$self->config,       { aaa => 2 }, 'refer to instance data';
+    __PACKAGE__->config({ bar => 2 });
+    ::is_deeply +__PACKAGE__->config, { bar => 2 }, 'refer to inherited class data';
+    $self->config({ baz => 3 });
+    ::is_deeply +$self->config,       { baz => 3 }, 'refer to instance data';
     ::is_deeply +Foo::Plugin->config, { foo => 1 }, 'class data is not changed';
 };
 

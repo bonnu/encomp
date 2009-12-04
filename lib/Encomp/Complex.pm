@@ -79,8 +79,8 @@ sub _conflate {
     for my $class ($controller, @{$adhoc}) {
         Encomp::Util::load_class($class);
     }
-    my $plugins_c = $controller ->composite->seek_all_plugins;
-    my $plugins_e = $encompasser->composite->seek_all_plugins;
+    my ($plugins_c) = $controller ->composite->get_all_plugins;
+    my ($plugins_e) = $encompasser->composite->get_all_plugins;
     my @classes   = uniq(
         @{ $plugins_c }, $controller,
         @{ $plugins_e }, $encompasser,
@@ -95,15 +95,15 @@ sub _conflate_methods {
     my ($complex, @classes) = @_;
     my %methods;
     for my $class (@classes) {
-        my $entries = Data::Util::get_stash($class);
-        %methods = (%methods, %{$entries});
+        my $stash = Data::Util::get_stash($class);
+        %methods  = (%methods, %{$stash});
     }
     delete $methods{$_} for
         qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
         qw/can isa import unimport/,
         qw/composite/,
         grep /^_/, keys %methods;
-    map { /(^EXPORT.*|::$)/o && delete $methods{$_} } keys %methods;
+    map { /(?:^EXPORT.*|::$)/o && delete $methods{$_} } keys %methods;
     $complex->{methods} = \%methods;
 }
 
@@ -120,17 +120,14 @@ sub _conflate_hooks {
 }
 
 sub _autoload {
-    my $proto = shift;
+    my $proto = $_[0];
     my $name  = our $AUTOLOAD;
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
     my $ns = $1;
-    if (my $code = $proto->complex->{methods}{$name}) {
-        do {
-            no strict 'refs';
-            *{$ns . '::' . $name} = $code;
-        };
-        return wantarray ? ($code->($proto, @_)) : $code->($proto, @_);
+    if (my $symbol = $proto->complex->{methods}{$name}) {
+        Encomp::Class->reinstall_subroutine($ns, $name => \&{$symbol});
+        goto \&{$symbol};
     }
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
 }

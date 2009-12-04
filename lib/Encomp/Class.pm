@@ -30,13 +30,12 @@ sub register_metadata {
 sub install_metadata {
     my ($class, $applicant, $setuped) = @_;
     my $setup = $METADATA{$setuped} or return;
+    my %methods;
     for my $metadata (@{$setup}) {
         my $data = $metadata->{func}->($applicant);
-        do {
-            no strict 'refs';
-            *{"$applicant\::$metadata->{name}"} = sub { $data };
-        };
+        $methods{$metadata->{name}} = sub { $data };
     }
+    $class->reinstall_subroutine($applicant, \%methods);
 }
 
 sub reinstall_subroutine {

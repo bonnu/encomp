@@ -5,7 +5,7 @@ use Encomp::Meta::Composite;
 use Carp qw/croak/;
 
 Encomp::Exporter->setup_suger_features(
-    as_is    => [qw/hook_to plugins AUTOLOAD/],
+    as_is    => [qw/hook_to plugins +AUTOLOAD/],
     metadata => { composite => sub { Encomp::Meta::Composite->new(@_) } },
 );
 
@@ -21,13 +21,13 @@ sub plugins {
 }
 
 sub AUTOLOAD {
-    my $proto = shift;
+    my $proto = $_[0];
     my $name  = our $AUTOLOAD;
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
     # TODO: error
     if (my $code = $proto->composite->get_code($name)) {
-        return wantarray ? ($code->($proto, @_)) : $code->($proto, @_);
+        goto \&{$code};
     }
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
 }
