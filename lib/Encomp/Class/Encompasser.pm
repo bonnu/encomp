@@ -13,12 +13,11 @@ sub operate {
     eval {
         $class->node->invoke(sub {
             my ($self, $context) = @_;
-            if (my $codes = $hooks->{$self->get_path}) {
+            if (my $codes = $hooks->{$self->{_path_compiled} || $self->get_path}) {
                 for my $code (@{$codes}) {
                     $code->($obj, $context, @args);
                 }
             }
-            return 1;
         });
     };
     my $err = $@;

@@ -8,9 +8,6 @@ use Tree::Simple qw/use_weak_refs/;
 
 use Encomp::Context;
 
-sub BREAK    () { 0 }
-sub CONTINUE () { 1 }
-
 sub new {
     my ($class, $id, $parent) = @_;
     if ($parent) {
@@ -61,31 +58,28 @@ sub invoke {
     my ($self, $callback) = @_;
     my $context = Encomp::Context->new;
     do {
-        last if $context->return;
-        $self->_traverse($context, $callback);
-    } while ($context->_goto);
+        last if $context->{return};
+        _traverse($self, $context, $callback);
+    } while ($context->{_goto});
 }
 
 sub _traverse {
     my ($self, $context, $callback) = @_;
     $context->current($self);
-    my $ret = 1;
-    $ret = $callback->($self, $context) unless $context->skip;
-    return BREAK if $context->return;
-    if ($ret) {
-        for my $node (@{ $self->{_children} }) {
-            return BREAK unless $node->_traverse($context, $callback);
-        }
+    $callback->($self, $context) unless $context->{skip};
+    return if $context->{return};
+    for my $node (@{ $self->{_children} }) {
+        return unless _traverse($node, $context, $callback);
     }
-    return CONTINUE;
+    return 1;
 }
 
 sub get_path {
     my $self = shift;
     my $path;
     unless ($path = $self->{_path_compiled}) {
-        my $cur   = $self;
         my @path;
+        my $cur = $self;
         until ($cur->isRoot) {
             unshift @path, $cur->{_uid};
             $cur = $cur->getParent;
@@ -117,6 +111,27 @@ sub find_by_path {
         undef $cur;
     }
     return $cur ? $cur : ();
+}
+
+sub get_all_ids {
+    my $self = shift;
+    my @ids;
+    my $ids = \@ids;
+    my $rec;
+    $rec = sub {
+        for my $child (@_) {
+            push @{$ids}, $child->getUID;
+            my $children = $child->getAllChildren;
+            next unless 0 < @{$children};
+            my $tmp = $ids;
+            $ids = [];
+            push @{$tmp}, $ids;
+            $rec->(@{$children});
+            $ids = $tmp;
+        }
+    };
+    $rec->($self->getAllChildren);
+    @ids;
 }
 
 1;
