@@ -3,6 +3,15 @@ package Encomp::Util;
 use strict;
 use warnings;
 use Carp qw/confess/;
+use Data::Util qw/:all/;
+
+use constant _strict_bits => strict::bits(qw/subs refs vars/);
+
+sub import {
+    $^H             |= _strict_bits;         # strict->import;
+    ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
+    # no export
+}
 
 # code was stolen from Mouse::Util orz
 BEGIN {
@@ -120,6 +129,11 @@ sub is_class_loaded {
 
     # fail
     return 0;
+}
+
+sub reinstall_subroutine {
+    no warnings 'redefine';
+    install_subroutine(@_);
 }
 
 1;

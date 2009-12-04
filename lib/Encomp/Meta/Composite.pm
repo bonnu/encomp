@@ -1,10 +1,7 @@
 package Encomp::Meta::Composite;
 
-use strict;
-use warnings;
-use base qw/Class::Accessor::Fast/;
 use Encomp::Util;
-use Data::Util qw/get_stash/;
+use base qw/Class::Accessor::Fast/;
 use List::MoreUtils qw/uniq/;
 use Sub::Name qw/subname/;
 
@@ -21,6 +18,13 @@ sub new {
     });
 }
 
+sub add_plugins {
+    my ($self, @plugins) = @_;
+    Encomp::Util::load_class($_) for @plugins;
+    push @{$self->plugins}, @plugins;
+    $self->check_all_plugins;
+}
+
 sub get_all_plugins {
     my ($self, $plugins, $methods) = @_;
     $plugins ||= [];
@@ -30,14 +34,12 @@ sub get_all_plugins {
         %{$methods} = (%{$methods}, %{$self->{_sought_methods}});
     }
     else {
-        $self->_get_all_plugins($plugins, $methods);
-        $self->{_sought_plugins} = +[ @{$plugins} ];
-        $self->{_sought_methods} = +{ %{$methods} };
+        $self->check_all_plugins($plugins, $methods);
     }
-    return ($plugins, $methods);
+    return $plugins;
 }
 
-sub _get_all_plugins {
+sub check_all_plugins {
     my ($self, $plugins, $methods) = @_;
     $plugins ||= [];
     $methods ||= {};
@@ -45,12 +47,16 @@ sub _get_all_plugins {
         next if grep { $_ eq $plugin } @{$plugins};
         $plugin->composite->get_all_plugins($plugins, $methods);
         next if grep { $_ eq $plugin } @{$plugins};
-        push @{$plugins}, $plugin;
-        my %stash = %{get_stash($plugin)};
-        map { delete $stash{$_} } grep /::$/o, keys %stash;
-        %{$methods} = (%{$methods}, %stash);
+        {
+            push @{$plugins}, $plugin;
+            my %stash = %{Encomp::Util::get_stash($plugin)};
+            map { delete $stash{$_} } grep /::$/o, keys %stash;
+            %{$methods} = (%{$methods}, %stash);
+        }
     }
-    return ($plugins, $methods);
+    $self->{_sought_plugins} = [ @{$plugins} ];
+    $self->{_sought_methods} = { %{$methods} };
+    return $plugins;
 }
 
 sub add_hook {
@@ -66,16 +72,7 @@ sub add_hook {
     };
 }
 
-sub add_plugins {
-    my ($self, @plugins) = @_;
-    Encomp::Util::load_class($_) for @plugins;
-    push @{$self->plugins}, @plugins;
-    my ($plugins, $methods) = $self->_get_all_plugins;
-    $self->{_sought_plugins} = +[ @{$plugins} ];
-    $self->{_sought_methods} = +{ %{$methods} };
-}
-
-sub get_code {
+sub get_method {
     my ($self, $name) = @_;
     exists $self->{_sought_methods}{$name} ? $self->{_sought_methods}{$name} : undef;
 }

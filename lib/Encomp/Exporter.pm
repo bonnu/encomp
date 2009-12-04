@@ -19,7 +19,7 @@ sub setup_suger_features {
     my $caller = scalar caller;
     croak 'This function should not be called from main' if $caller eq 'main';
     $class->_build_spec($caller, @_);
-    Encomp::Class->reinstall_subroutine(
+    Encomp::Util::reinstall_subroutine(
         $caller,
         import   => $class->_build_import  ($caller),
         unimport => $class->_build_unimport($caller),
@@ -61,11 +61,11 @@ sub _build_import {
                 @{$SPEC{$super}}{qw/applicant_isa metadata setup as_is/};
             if ($base) {
                 unshift @{$isa}, $base unless grep m!\A$base\Z!, @{$isa};
-                Encomp::Class->install_metadata($caller, $base);
+                Encomp::Class::install_metadata($caller, $base);
             }
             if (0 < @{$as_is}) {
                 no strict 'refs';
-                Encomp::Class->reinstall_subroutine(
+                Encomp::Util::reinstall_subroutine(
                     $caller, 
                     map { $_ => \&{"${super}::${_}"} } @{$as_is},
                 );
@@ -76,7 +76,7 @@ sub _build_import {
                     my $data = $metadata->{$name}->($caller) or next;
                     $methods{$name} = sub { $data };
                 }
-                Encomp::Class->reinstall_subroutine($caller, \%methods);
+                Encomp::Util::reinstall_subroutine($caller, \%methods);
             }
             if ($setup && ref $setup eq 'CODE') {
                 $setup->($class, $caller);
@@ -94,7 +94,7 @@ sub _build_unimport {
         my @addons = exists $ADDED{$class}{$caller} ? @{$ADDED{$class}{$caller}} : ();
         for my $super (reverse(@addons), @{Encomp::Util::get_linear_isa($class)}) {
             my $unimport = $SPEC{$super}{_unimport};
-            Encomp::Class->uninstall_subroutine($caller, @{$unimport});
+            Encomp::Util::uninstall_subroutine($caller, @{$unimport});
         }
         return 1;
     }

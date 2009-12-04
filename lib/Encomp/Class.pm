@@ -1,26 +1,21 @@
 package Encomp::Class;
 
-use strict;
-use warnings;
-use Data::Util ();
-
-use constant _strict_bits => strict::bits(qw/subs refs vars/);
+use Encomp::Util;
 
 my %METADATA;
 
 sub import {
-    $^H             |= _strict_bits;         # strict->import;
-    ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
+    goto \&Encomp::Util::import;
 }
 
 sub setup_metadata {
     my $class  = shift;
     my $caller = scalar caller;
-    $class->register_metadata($caller, @_);
+    register_metadata($caller, @_);
 }
 
 sub register_metadata {
-    my ($class, $applicant, @args) = @_;
+    my ($applicant, @args) = @_;
     my $setup = $METADATA{$applicant} ||= [];
     while (my ($key, $func) = splice @args, 0, 2) {
         push @{$setup}, { name => $key, func => $func };
@@ -28,25 +23,14 @@ sub register_metadata {
 }
 
 sub install_metadata {
-    my ($class, $applicant, $setuped) = @_;
+    my ($applicant, $setuped) = @_;
     my $setup = $METADATA{$setuped} or return;
     my %methods;
     for my $metadata (@{$setup}) {
         my $data = $metadata->{func}->($applicant);
         $methods{$metadata->{name}} = sub { $data };
     }
-    $class->reinstall_subroutine($applicant, \%methods);
-}
-
-sub reinstall_subroutine {
-    my ($class, $applicant, @args) = @_;
-    no warnings 'redefine';
-    Data::Util::install_subroutine($applicant, @args);
-}
-
-sub uninstall_subroutine {
-    my ($class, $applicant, @args) = @_;
-    Data::Util::uninstall_subroutine($applicant, @args);
+    Encomp::Util::reinstall_subroutine($applicant, \%methods);
 }
 
 1;

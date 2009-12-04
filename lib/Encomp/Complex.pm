@@ -1,6 +1,5 @@
 package Encomp::Complex;
 
-use Encomp::Class;
 use Encomp::Util;
 use Carp qw/croak confess/;
 use Digest::MD5 qw/md5_hex/;
@@ -25,10 +24,10 @@ sub _initialize {
     my ($encompasser, $controller, $adhoc) = _initial_args(@_);
     my $adhoc_digest = _generate_adhoc_digest($adhoc);
     my $namespace    = _generate_namespace   ($encompasser, $controller, $adhoc_digest);
-    my $complex      = _generate_complex     ($encompasser, $controller, $adhoc_digest);
+    my $complex      = _initialize_complex   ($encompasser, $controller, $adhoc_digest);
     if ($complex) {
         _conflate($complex, $encompasser, $controller, $adhoc);
-        Encomp::Class->reinstall_subroutine(
+        Encomp::Util::reinstall_subroutine(
             $namespace,
             AUTOLOAD => \&_autoload,
             can      => \&_can,
@@ -64,7 +63,7 @@ sub _generate_namespace {
         $encompasser, '_complexed', $controller, $adhoc_digest ? $adhoc_digest : ();
 }
 
-sub _generate_complex {
+sub _initialize_complex {
     my ($encompasser, $controller, $adhoc_digest) = @_;
     my $complex = \%COMPLEX;
     for ($encompasser, $controller, $adhoc_digest || '_') {
@@ -95,7 +94,7 @@ sub _conflate_methods {
     my ($complex, @classes) = @_;
     my %methods;
     for my $class (@classes) {
-        my $stash = Data::Util::get_stash($class);
+        my $stash = Encomp::Util::get_stash($class);
         %methods  = (%methods, %{$stash});
     }
     delete $methods{$_} for
@@ -126,7 +125,7 @@ sub _autoload {
     $name eq 'DESTROY' && return;
     my $ns = $1;
     if (my $symbol = $proto->complex->{methods}{$name}) {
-        Encomp::Class->reinstall_subroutine($ns, $name => \&{$symbol});
+        Encomp::Util::reinstall_subroutine($ns, $name => \&{$symbol});
         goto \&{$symbol};
     }
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
