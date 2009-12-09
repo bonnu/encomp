@@ -18,7 +18,7 @@ sub new {
         $parent && croak 'id is necessary for the child.';
         $id = '/';
     }
-    my $self = Tree::Simple::new($class, {}, $parent);
+    my $self = Tree::Simple::new($class, { path_cached => undef }, $parent);
     $self->setUID($id);
     return $self;
 }
@@ -33,7 +33,7 @@ sub is_unique_on_fraternity {
 sub _is_node {
     my $id  = shift   || return;
     my $ref = ref $id || return;
-    return if $ref =~ /\A(?:ARRAY|CODE|GLOB|HASH|REF|Regexp|SCALAR)\Z/o;
+    return if $ref =~ /\A(?:ARRAY|CODE|GLOB|HASH|REF|Regexp|SCALAR)\z/o;
     return $id->isa(__PACKAGE__);
 }
 
@@ -77,14 +77,14 @@ sub _traverse {
 sub get_path {
     my $self = shift;
     my $path;
-    unless ($path = $self->{_path_compiled}) {
+    unless ($path = $self->{path_cached}) {
         my @path;
         my $cur = $self;
         until ($cur->isRoot) {
             unshift @path, $cur->{_uid};
             $cur = $cur->getParent;
         }
-        $path = $self->{_path_compiled} = '/' . join '/', @path;
+        $path = $self->{path_cached} = '/' . join '/', @path;
     }
     return $path;
 }

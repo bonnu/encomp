@@ -5,58 +5,40 @@ use base qw/Class::Accessor::Fast/;
 use List::MoreUtils qw/uniq/;
 use Sub::Name qw/subname/;
 
-__PACKAGE__->mk_accessors qw/applicant hooks plugins/;
+__PACKAGE__->mk_accessors qw/
+    applicant
+    hooks
+    plugins
+    depending_plugins
+/;
 
 sub new {
     my ($class, $applicant) = @_;
-    $class->SUPER::new({
-        applicant       => $applicant,
-        hooks           => {},
-        plugins         => [],
-        _sought_plugins => undef,
-        _sought_methods => undef,
+    my $self = $class->SUPER::new({
+        applicant         => $applicant,
+        hooks             => {},
+        plugins           => [],
+        depending_plugins => undef,
     });
+    return $self;
+}
+
+sub get_method_of_plugin {
+    my ($self, $name) = @_;
+    $self->compile_depending_plugins;
+    for my $plugin (reverse @{$self->depending_plugins}) {
+        my $code = $plugin->can($name) || next;
+        return $code;
+    }
 }
 
 sub add_plugins {
     my ($self, @plugins) = @_;
-    Encomp::Util::load_class($_) for @plugins;
-    push @{$self->plugins}, @plugins;
-    $self->check_all_plugins;
-}
-
-sub get_all_plugins {
-    my ($self, $plugins, $methods) = @_;
-    $plugins ||= [];
-    $methods ||= {};
-    if (my $sought = $self->{_sought_plugins}) {
-        @{$plugins} = uniq @{$plugins}, @{$sought};
-        %{$methods} = (%{$methods}, %{$self->{_sought_methods}});
+    for my $plugin (uniq @plugins) {
+        next if grep { $_ eq $plugin } @{$self->plugins};
+        Encomp::Util::load_class($plugin);
+        push @{$self->plugins}, $plugin;
     }
-    else {
-        $self->check_all_plugins($plugins, $methods);
-    }
-    return $plugins;
-}
-
-sub check_all_plugins {
-    my ($self, $plugins, $methods) = @_;
-    $plugins ||= [];
-    $methods ||= {};
-    for my $plugin (@{$self->plugins}) {
-        next if grep { $_ eq $plugin } @{$plugins};
-        $plugin->composite->get_all_plugins($plugins, $methods);
-        next if grep { $_ eq $plugin } @{$plugins};
-        {
-            push @{$plugins}, $plugin;
-            my %stash = %{Encomp::Util::get_stash($plugin)};
-            map { delete $stash{$_} } grep /::$/o, keys %stash;
-            %{$methods} = (%{$methods}, %stash);
-        }
-    }
-    $self->{_sought_plugins} = [ @{$plugins} ];
-    $self->{_sought_methods} = { %{$methods} };
-    return $plugins;
 }
 
 sub add_hook {
@@ -72,9 +54,24 @@ sub add_hook {
     };
 }
 
-sub get_method {
-    my ($self, $name) = @_;
-    exists $self->{_sought_methods}{$name} ? $self->{_sought_methods}{$name} : undef;
+sub compile_depending_plugins {
+    my $self = shift;
+    my @plugins;
+    if ($self->depending_plugins) {
+        @plugins = @{$self->depending_plugins};
+    }
+    else {
+        for my $plugin (@{$self->plugins}) {
+            next if grep { $_ eq $plugin } @plugins;
+            $plugin->composite->compile_depending_plugins(\@plugins);
+            push @plugins, $plugin;
+        }
+        @plugins = uniq @plugins;
+        $self->depending_plugins(\@plugins);
+    }
+    if (@_ && ref $_[0] eq 'ARRAY') {
+        push @{$_[0]}, @plugins;
+    }
 }
 
 1;

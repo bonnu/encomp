@@ -25,7 +25,7 @@ sub AUTOLOAD {
     my $name  = our $AUTOLOAD;
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
-    if (my $code = $proto->composite->get_method($name)) {
+    if (my $code = $proto->composite->get_method_of_plugin($name)) {
         goto \&{$code};
     }
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';

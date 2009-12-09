@@ -140,4 +140,6 @@ is_deeply
         finalize   =>
     ];
 
+use Data::Dumper;
+print Dumper(Foo::_complexed::Foo::Controller->complex);
 

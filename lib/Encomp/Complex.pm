@@ -23,8 +23,8 @@ sub dischain {
 sub _initialize {
     my ($encompasser, $controller, $adhoc) = _initial_args(@_);
     my $adhoc_digest = _generate_adhoc_digest($adhoc);
-    my $namespace    = _generate_namespace   ($encompasser, $controller, $adhoc_digest);
-    my $complex      = _initialize_complex   ($encompasser, $controller, $adhoc_digest);
+    my $namespace    = _generate_namespace($encompasser, $controller, $adhoc_digest);
+    my $complex      = _initialize_complex($encompasser, $controller, $adhoc_digest);
     if ($complex) {
         _conflate($complex, $encompasser, $controller, $adhoc);
         Encomp::Util::reinstall_subroutine(
@@ -66,8 +66,8 @@ sub _generate_namespace {
 sub _initialize_complex {
     my ($encompasser, $controller, $adhoc_digest) = @_;
     my $complex = \%COMPLEX;
-    for ($encompasser, $controller, $adhoc_digest || '_') {
-        $complex = $complex->{$_} ||= {};
+    for my $namespace ($encompasser, $controller, $adhoc_digest || '_') {
+        $complex = $complex->{$namespace} ||= {};
     }
     return if 0 < keys %{$complex};
     return $complex;
@@ -75,16 +75,11 @@ sub _initialize_complex {
 
 sub _conflate {
     my ($complex, $encompasser, $controller, $adhoc) = @_;
-    for my $class ($controller, @{$adhoc}) {
+    my @classes = uniq $controller, $encompasser, @{$adhoc};
+    for my $class (@classes) {
         Encomp::Util::load_class($class);
+        $class->composite->compile_depending_plugins;
     }
-    my ($plugins_c) = $controller ->composite->get_all_plugins;
-    my ($plugins_e) = $encompasser->composite->get_all_plugins;
-    my @classes   = uniq(
-        @{ $plugins_c }, $controller,
-        @{ $plugins_e }, $encompasser,
-        @{ $adhoc     },
-    );
     _conflate_methods($complex, @classes);
     _conflate_hooks  ($complex, @classes);
     return 1;
@@ -93,7 +88,13 @@ sub _conflate {
 sub _conflate_methods {
     my ($complex, @classes) = @_;
     my %methods;
+    my @all_classes;
     for my $class (@classes) {
+        push @all_classes, @{$class->composite->depending_plugins};
+        push @all_classes, $class;
+    }
+    @all_classes = uniq @all_classes;
+    for my $class (@all_classes) {
         my $stash = Encomp::Util::get_stash($class);
         %methods  = (%methods, %{$stash});
     }
@@ -109,7 +110,13 @@ sub _conflate_methods {
 sub _conflate_hooks {
     my ($complex, @classes) = @_;
     my %hooks;
+    my @all_classes;
     for my $class (@classes) {
+        push @all_classes, @{$class->composite->depending_plugins};
+        push @all_classes, $class;
+    }
+    @all_classes = uniq @all_classes;
+    for my $class (@all_classes) {
         my $hooks = $class->composite->hooks;
         for my $point (keys %{$hooks}) {
             push @{$hooks{$point} ||= []}, @{$hooks->{$point}};
