@@ -75,12 +75,15 @@ sub _initialize_complex {
 
 sub _conflate {
     my ($complex, $encompasser, $controller, $adhoc) = @_;
-    my @classes = uniq $controller, $encompasser, @{$adhoc};
-    for my $class (@classes) {
+    my @classes;
+    for my $class (uniq $controller, $encompasser, @{$adhoc}) {
         Encomp::Util::load_class($class);
         $class->composite->compile_depending_plugins;
+        push @classes, @{$class->composite->depending_plugins};
     }
+    @classes = uniq @classes;
     _conflate_methods($complex, @classes);
+    _delete_methods  ($complex, @classes);
     _conflate_hooks  ($complex, @classes);
     return 1;
 }
@@ -88,35 +91,28 @@ sub _conflate {
 sub _conflate_methods {
     my ($complex, @classes) = @_;
     my %methods;
-    my @all_classes;
     for my $class (@classes) {
-        push @all_classes, @{$class->composite->depending_plugins};
-        push @all_classes, $class;
+        my %stash = %{ Encomp::Util::get_stash($class) };
+        @methods{keys %stash} = values %stash;
     }
-    @all_classes = uniq @all_classes;
-    for my $class (@all_classes) {
-        my $stash = Encomp::Util::get_stash($class);
-        %methods  = (%methods, %{$stash});
-    }
-    delete $methods{$_} for
+    $complex->{methods} = \%methods;
+}
+
+sub _delete_methods {
+    my ($complex, @classes) = @_;
+    my $methods = $complex->{methods};
+    delete $methods->{$_} for
         qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
         qw/can isa import unimport/,
         qw/composite/,
-        grep /^_/, keys %methods;
-    map { /(?:^EXPORT.*|::$)/o && delete $methods{$_} } keys %methods;
-    $complex->{methods} = \%methods;
+        grep /^_/, keys %{$methods};
+    map { /(?:^EXPORT.*|::$)/o && delete $methods->{$_} } keys %{$methods};
 }
 
 sub _conflate_hooks {
     my ($complex, @classes) = @_;
     my %hooks;
-    my @all_classes;
     for my $class (@classes) {
-        push @all_classes, @{$class->composite->depending_plugins};
-        push @all_classes, $class;
-    }
-    @all_classes = uniq @all_classes;
-    for my $class (@all_classes) {
         my $hooks = $class->composite->hooks;
         for my $point (keys %{$hooks}) {
             push @{$hooks{$point} ||= []}, @{$hooks->{$point}};

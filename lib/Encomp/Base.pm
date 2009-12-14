@@ -5,7 +5,7 @@ use Encomp::Meta::Composite;
 use Carp qw/croak/;
 
 Encomp::Exporter->setup_suger_features(
-    as_is    => [qw/hook_to plugins +AUTOLOAD/],
+    as_is    => [qw/hook_to plugins duck_type +AUTOLOAD/],
     metadata => { composite => sub { Encomp::Meta::Composite->new(@_) } },
 );
 
@@ -18,6 +18,10 @@ sub plugins {
     my $class   = caller;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
     my $loaded  = $class->composite->add_plugins(@plugins);
+}
+
+sub duck_type {
+    my $class = caller;
 }
 
 sub AUTOLOAD {

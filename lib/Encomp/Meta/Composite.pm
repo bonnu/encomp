@@ -18,6 +18,7 @@ sub new {
         applicant         => $applicant,
         hooks             => {},
         plugins           => [],
+        duck_types        => [],
         depending_plugins => undef,
     });
     return $self;
@@ -41,6 +42,10 @@ sub add_plugins {
     }
 }
 
+sub add_duck_types {
+    my ($self, @duck_types) = @_;
+}
+
 sub add_hook {
     my ($self, $hook, $callback) = @_;
     my $hooks  = $self->hooks->{$hook} ||= [];
@@ -57,16 +62,15 @@ sub add_hook {
 sub compile_depending_plugins {
     my $self = shift;
     my @plugins;
-    if ($self->depending_plugins) {
-        @plugins = @{$self->depending_plugins};
+    if (my $ret = $self->depending_plugins) {
+        @plugins = @{$ret};
     }
     else {
         for my $plugin (@{$self->plugins}) {
             next if grep { $_ eq $plugin } @plugins;
             $plugin->composite->compile_depending_plugins(\@plugins);
-            push @plugins, $plugin;
         }
-        @plugins = uniq @plugins;
+        @plugins = uniq @plugins, $self->applicant; # add self
         $self->depending_plugins(\@plugins);
     }
     if (@_ && ref $_[0] eq 'ARRAY') {
