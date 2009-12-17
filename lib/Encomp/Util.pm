@@ -10,7 +10,6 @@ use constant _strict_bits => strict::bits(qw/subs refs vars/);
 sub import {
     $^H             |= _strict_bits;         # strict->import;
     ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
-    # no export
 }
 
 # code was stolen from Mouse::Util orz

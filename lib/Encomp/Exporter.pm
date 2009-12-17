@@ -3,6 +3,7 @@ package Encomp::Exporter;
 use Encomp::Class;
 use Encomp::Util;
 use Carp qw/croak/;
+use List::MoreUtils qw/uniq/;
 
 my %SPEC;
 my %ADDED;
@@ -29,7 +30,8 @@ sub setup_suger_features {
 sub _build_spec {
     my ($class, $promoter, %args) = @_;
     return if exists $SPEC{$promoter};
-    if (my $load_class = $SPEC{$promoter}{applicant_isa} = $args{applicant_isa}) {
+    my $spec = $SPEC{$promoter} = {};
+    if (my $load_class = $spec->{applicant_isa} = $args{applicant_isa}) {
         Encomp::Util::load_class($load_class);
     }
     my @unimport;
@@ -38,11 +40,14 @@ sub _build_spec {
         s/^([+])//;
         push @unimport, $_ unless $1 && $1 eq '+';
     }
-    $SPEC{$promoter}{as_is}       = $as_is;
-    $SPEC{$promoter}{_unimport}   = \@unimport;
-    $SPEC{$promoter}{setup}       = $args{setup};
-    $SPEC{$promoter}{metadata}    = $args{metadata}    || undef;
-    $SPEC{$promoter}{specific_ns} = $args{specific_ns} || $promoter;
+    my $with = $args{specific_with} || [];
+    $with = [ $with ] unless ref $with eq 'ARRAY';
+    $spec->{as_is}         = $as_is;
+    $spec->{_unimport}     = \@unimport;
+    $spec->{setup}         = $args{setup};
+    $spec->{metadata}      = $args{metadata}    || undef;
+    $spec->{specific_ns}   = $args{specific_ns} || $promoter;
+    $spec->{specific_with} = $with;
 }
 
 sub _build_import {
@@ -54,9 +59,13 @@ sub _build_import {
         my $caller = scalar caller;
         return if $class  ne $promoter;
         return if $caller eq 'main';
-        my @loaded = _load_addons($class, @addons);
         my $isa    = do { no strict 'refs'; \@{$caller . '::ISA'} };
-        for my $super (reverse(@{Encomp::Util::get_linear_isa($class)}), @loaded) {
+        my @loaded = _get_dependent_addons($class);
+        for my $addon (_load_addons($class, @addons)) {
+            push @loaded, _get_dependent_addons($addon);
+        }
+        @loaded = uniq @loaded;
+        for my $super (@loaded) {
             my ($base, $metadata, $setup, $as_is) =
                 @{$SPEC{$super}}{qw/applicant_isa metadata setup as_is/};
             if ($base) {
@@ -91,13 +100,27 @@ sub _build_unimport {
     sub {
         my $class  = shift;
         my $caller = scalar caller;
-        my @addons = exists $ADDED{$class}{$caller} ? @{$ADDED{$class}{$caller}} : ();
-        for my $super (reverse(@addons), @{Encomp::Util::get_linear_isa($class)}) {
+        my @addons = @{$ADDED{$class}{$caller}};
+        for my $super (reverse @addons) {
             my $unimport = $SPEC{$super}{_unimport};
             Encomp::Util::uninstall_subroutine($caller, @{$unimport});
         }
         return 1;
     }
+}
+
+sub _get_dependent_addons {
+    my $class = shift;
+    my @isa   = reverse @{Encomp::Util::get_linear_isa($class)};
+    my @addons;
+    for my $super (@isa) {
+        my $with = $SPEC{$super}{specific_with};
+        for my $addon (_load_addons($super, @{$with})) {
+            push @addons, _get_dependent_addons($addon);
+        }
+        push @addons, $super;
+    }
+    return uniq @addons, $class;
 }
 
 sub _load_addons {

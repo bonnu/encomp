@@ -6,6 +6,7 @@ use parent qw/Encomp::Base/;
 Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Plugin',
     specific_ns   => 'Encomp::Specific',
+    specific_with => '+DuckType',
 );
 
 1;

@@ -30,6 +30,7 @@ use Test::More 'no_plan';
     Encomp::Exporter->setup_suger_features(
         applicant_isa => __PACKAGE__ . '::Object',
         as_is         => [qw/bar suger/],
+        specific_with => [qw/Qux/],
     );
 
     sub bar   {}
@@ -58,6 +59,16 @@ use Test::More 'no_plan';
     package Baz::Object;
 
     sub me { __PACKAGE__ }
+
+    package Qux;
+
+    use Encomp::Exporter;
+
+    Encomp::Exporter->setup_suger_features(
+        as_is => [qw/qux/],
+    );
+
+    sub qux   {}
 }
 
 package Test::Foo;
@@ -86,6 +97,7 @@ Bar->import; #::diag 'use Bar;';
 
 ::can_ok 'Test::Bar', 'foo';
 ::can_ok 'Test::Bar', 'bar';
+::can_ok 'Test::Bar', 'qux';
 ::can_ok 'Test::Bar', 'suger';
 ::ok ! Test::Bar->can('baz'),   'Test::Bar->can\'t(\'baz\')' ;
 
