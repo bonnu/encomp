@@ -15,6 +15,20 @@ sub import {
     ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
 }
 
+sub get_coated_base_classes {
+    my ($class, $applicant) = @_;
+    my @specific;
+    for my $base (keys %{$ADDED{$applicant}}) {
+        push @specific, $base, @{$ADDED{$applicant}{$base}};
+    }
+    uniq @specific;
+}
+
+sub get_setup_methods {
+    my ($class, $base) = @_;
+    @{$SPEC{$base}{setup}};
+}
+
 sub setup_suger_features {
     my $class  = shift;
     my $caller = scalar caller;
@@ -34,20 +48,22 @@ sub _build_spec {
     if (my $load_class = $spec->{applicant_isa} = $args{applicant_isa}) {
         Encomp::Util::load_class($load_class);
     }
-    my @unimport;
+    my @uninstall;
     my $as_is = $args{as_is} || [];
     for (@{$as_is}) {
         s/^([+])//;
-        push @unimport, $_ unless $1 && $1 eq '+';
+        push @uninstall, $_ unless $1;
     }
-    my $with = $args{specific_with} || [];
-    $with = [ $with ] unless ref $with eq 'ARRAY';
+    my $setup = $args{setup}         || [];
+    my $with  = $args{specific_with} || [];
+    $setup = [ $setup ] unless ref $setup eq 'ARRAY';
+    $with  = [ $with ]  unless ref $with  eq 'ARRAY';
     $spec->{as_is}         = $as_is;
-    $spec->{_unimport}     = \@unimport;
-    $spec->{setup}         = $args{setup};
     $spec->{metadata}      = $args{metadata}    || undef;
+    $spec->{setup}         = $setup;
     $spec->{specific_ns}   = $args{specific_ns} || $promoter;
     $spec->{specific_with} = $with;
+    $spec->{_uninstall}    = \@uninstall;
 }
 
 sub _build_import {
@@ -65,33 +81,35 @@ sub _build_import {
             push @loaded, _get_dependent_addons($addon);
         }
         @loaded = uniq @loaded;
+        my @added;
         for my $super (@loaded) {
-            my ($base, $metadata, $setup, $as_is) =
-                @{$SPEC{$super}}{qw/applicant_isa metadata setup as_is/};
+            my ($base, $metadata, $as_is) =
+                @{$SPEC{$super}}{qw/applicant_isa metadata as_is/};
             if ($base) {
                 unshift @{$isa}, $base unless grep m!\A$base\Z!, @{$isa};
                 Encomp::Class::install_metadata($caller, $base);
             }
+            my %methods;
             if (0 < @{$as_is}) {
-                no strict 'refs';
-                Encomp::Util::reinstall_subroutine(
-                    $caller, 
-                    map { $_ => \&{"${super}::${_}"} } @{$as_is},
-                );
+                for my $name (@{$as_is}) {
+                    $methods{$name} = $super->can($name);
+                }
             }
             if ($metadata && ref $metadata eq 'HASH') {
-                my %methods;
                 for my $name (keys %{$metadata}) {
-                    my $data = $metadata->{$name}->($caller) or next;
+                    my $data = $metadata->{$name}->($caller);
                     $methods{$name} = sub { $data };
                 }
+            }
+            if (%methods) {
                 Encomp::Util::reinstall_subroutine($caller, \%methods);
             }
-            if ($setup && ref $setup eq 'CODE') {
-                $setup->($class, $caller);
-            }
+            push @added, $super unless $super eq $class;
         }
-        ${$ADDED{$class} ||= {}}{$caller} = \@loaded if 0 < @loaded;
+        if (0 < @added) {
+            my $addons = ${$ADDED{$caller} ||= {}}{$class} ||= [];
+            push @{$addons}, @added;
+        }
     }
 }
 
@@ -100,10 +118,13 @@ sub _build_unimport {
     sub {
         my $class  = shift;
         my $caller = scalar caller;
-        my @addons = @{$ADDED{$class}{$caller}};
+        my @addons = ($class);
+        if (exists $ADDED{$caller}{$class}) {
+            push @addons, @{$ADDED{$caller}{$class}};
+        }
         for my $super (reverse @addons) {
-            my $unimport = $SPEC{$super}{_unimport};
-            Encomp::Util::uninstall_subroutine($caller, @{$unimport});
+            my $uninstall = $SPEC{$super}{_uninstall};
+            Encomp::Util::uninstall_subroutine($caller, @{$uninstall});
         }
         return 1;
     }

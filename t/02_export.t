@@ -107,6 +107,7 @@ Bar->unimport; #::diag 'no Bar;';
 
 ::ok ! Test::Bar->can('foo'),   'Test::Bar->can\'t(\'foo\')';
 ::ok ! Test::Bar->can('bar'),   'Test::Bar->can\'t(\'bar\')' ;
+::ok ! Test::Bar->can('qux'),   'Test::Bar->can\'t(\'qux\')' ;
 ::ok ! Test::Bar->can('suger'), 'Test::Bar->can\'t(\'suger\')';
 
 ::is +Test::Bar->me, 'Bar::Object';
@@ -119,6 +120,7 @@ Baz->import; #::diag 'use Baz;';
 
 ::can_ok 'Test::Baz', 'foo';
 ::can_ok 'Test::Baz', 'bar';
+::can_ok 'Test::Baz', 'qux';
 ::can_ok 'Test::Baz', 'baz';
 ::can_ok 'Test::Baz', 'suger';
 
@@ -128,6 +130,7 @@ Baz->unimport; #::diag 'no Baz;';
 
 ::ok ! Test::Baz->can('foo'),   'Test::Baz->can\'t(\'foo\')';
 ::ok ! Test::Baz->can('bar'),   'Test::Baz->can\'t(\'bar\')' ;
+::ok ! Test::Baz->can('qux'),   'Test::Baz->can\'t(\'qux\')' ;
 ::ok ! Test::Baz->can('baz'),   'Test::Baz->can\'t(\'baz\')' ;
 ::ok ! Test::Baz->can('suger'), 'Test::Baz->can\'t(\'suger\')';
 

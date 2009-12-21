@@ -1,7 +1,7 @@
 package Encomp;
 
 use Encomp::Exporter;
-use parent qw/Encomp::Base/;
+use base qw/Encomp::Base/;
 
 our $VERSION = '0.01';
 
@@ -9,6 +9,10 @@ Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Encompasser',
     as_is         => [qw/processes/],
     specific_ns   => 'Encomp::Specific',
+    specific_with => [qw/
+        +Hook
+        +Plugin
+    /],
 );
 
 sub processes {

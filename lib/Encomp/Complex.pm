@@ -1,6 +1,7 @@
 package Encomp::Complex;
 
 use Encomp::Util;
+use Encomp::Exporter;
 use Carp qw/croak confess/;
 use Digest::MD5 qw/md5_hex/;
 use List::MoreUtils qw/uniq/;
@@ -15,16 +16,11 @@ sub build {
     bless {}, _initialize(@_);
 }
 
-sub dischain {
-    my ($class, $obj) = @_;
-    return $obj;
-}
-
 sub _initialize {
     my ($encompasser, $controller, $adhoc) = _initial_args(@_);
-    my $adhoc_digest = _generate_adhoc_digest($adhoc);
-    my $namespace    = _generate_namespace($encompasser, $controller, $adhoc_digest);
-    my $complex      = _initialize_complex($encompasser, $controller, $adhoc_digest);
+    my $id        = 0 < @{$adhoc} ? '_' . md5_hex join '', sort @{$adhoc} : '_';
+    my $namespace = _generate_namespace($encompasser, $controller, $id);
+    my $complex   = _initialize_complex($encompasser, $controller, $id);
     if ($complex) {
         _conflate($complex, $encompasser, $controller, $adhoc);
         Encomp::Util::reinstall_subroutine(
@@ -48,25 +44,16 @@ sub _initial_args {
     return ($encompasser, $controller, \@adhoc);
 }
 
-sub _generate_adhoc_digest {
-    my $adhoc = shift;
-    my $digest;
-    if (0 < @{$adhoc}) {
-        $digest = '_' . md5_hex(join '', sort @{$adhoc});
-    }
-    return $digest;
-}
-
 sub _generate_namespace {
-    my ($encompasser, $controller, $adhoc_digest) = @_;
+    my ($encompasser, $controller, $id) = @_;
     return join '::',
-        $encompasser, '_complexed', $controller, $adhoc_digest ? $adhoc_digest : ();
+        $encompasser, '_complexed', $controller, $id;
 }
 
 sub _initialize_complex {
-    my ($encompasser, $controller, $adhoc_digest) = @_;
+    my ($encompasser, $controller, $id) = @_;
     my $complex = \%COMPLEX;
-    for my $namespace ($encompasser, $controller, $adhoc_digest || '_') {
+    for my $namespace ($encompasser, $controller, $id) {
         $complex = $complex->{$namespace} ||= {};
     }
     return if 0 < keys %{$complex};
@@ -76,49 +63,20 @@ sub _initialize_complex {
 sub _conflate {
     my ($complex, $encompasser, $controller, $adhoc) = @_;
     my @classes;
+    my @exporters;
     for my $class (uniq $controller, $encompasser, @{$adhoc}) {
         Encomp::Util::load_class($class);
         $class->composite->compile_depending_plugins;
-        push @classes, @{$class->composite->depending_plugins};
+        push @classes,   @{$class->composite->depending_plugins};
+        push @exporters, Encomp::Exporter->get_coated_base_classes($class);
     }
-    @classes = uniq @classes;
-    _conflate_methods($complex, @classes);
-    _delete_methods  ($complex, @classes);
-    _conflate_hooks  ($complex, @classes);
+    @classes   = uniq @classes;
+    @exporters = uniq @exporters;
+    for my $exporter (@exporters) {
+        map { $_->($complex, @classes) }
+            Encomp::Exporter->get_setup_methods($exporter);
+    }
     return 1;
-}
-
-sub _conflate_methods {
-    my ($complex, @classes) = @_;
-    my %methods;
-    for my $class (@classes) {
-        my %stash = %{ Encomp::Util::get_stash($class) };
-        @methods{keys %stash} = values %stash;
-    }
-    $complex->{methods} = \%methods;
-}
-
-sub _delete_methods {
-    my ($complex, @classes) = @_;
-    my $methods = $complex->{methods};
-    delete $methods->{$_} for
-        qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
-        qw/can isa import unimport/,
-        qw/composite/,
-        grep /^_/, keys %{$methods};
-    map { /(?:^EXPORT.*|::$)/o && delete $methods->{$_} } keys %{$methods};
-}
-
-sub _conflate_hooks {
-    my ($complex, @classes) = @_;
-    my %hooks;
-    for my $class (@classes) {
-        my $hooks = $class->composite->hooks;
-        for my $point (keys %{$hooks}) {
-            push @{$hooks{$point} ||= []}, @{$hooks->{$point}};
-        }
-    }
-    $complex->{hooks} = \%hooks;
 }
 
 sub _autoload {
@@ -141,3 +99,19 @@ sub _can {
 1;
 
 __END__
+
+=h1 NAME
+
+Encomp::Complex
+
+=h1 DESCRIPTION
+
+The class group composed of mechanism of Encomp is synthesized.
+
+=h1 SYNOPSIS
+
+ my $creature = Encomp::Complex->build($design_class, $controller_class);
+
+=h1
+
+=cut

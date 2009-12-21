@@ -18,7 +18,6 @@ sub new {
         applicant         => $applicant,
         hooks             => {},
         plugins           => [],
-        duck_types        => [],
         depending_plugins => undef,
     });
     return $self;
@@ -40,10 +39,6 @@ sub add_plugins {
         Encomp::Util::load_class($plugin);
         push @{$self->plugins}, $plugin;
     }
-}
-
-sub add_duck_types {
-    my ($self, @duck_types) = @_;
 }
 
 sub add_hook {
@@ -73,7 +68,7 @@ sub compile_depending_plugins {
         @plugins = uniq @plugins, $self->applicant; # add self
         $self->depending_plugins(\@plugins);
     }
-    if (@_ && ref $_[0] eq 'ARRAY') {
+    if (0 < @_ && ref $_[0] eq 'ARRAY') {
         push @{$_[0]}, @plugins;
     }
 }
@@ -81,3 +76,26 @@ sub compile_depending_plugins {
 1;
 
 __END__
+
+=head1 NAME
+
+Encomp::Meta::Composite
+
+=head1 SYNOPSIS
+
+ my $composite = Encomp::Meta::Composite->new($owner_class);
+
+=head1 DESCRIPTION
+
+
+
+=head1 AUTHOR
+
+Satoshi Ohkubo E<lt>s.ohkubo@gmail.comE<gt>
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

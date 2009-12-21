@@ -1,12 +1,16 @@
 package Encomp::Plugin;
 
 use Encomp::Exporter;
-use parent qw/Encomp::Base/;
+use base qw/Encomp::Base/;
 
 Encomp::Exporter->setup_suger_features(
     applicant_isa => 'Encomp::Class::Plugin',
     specific_ns   => 'Encomp::Specific',
-    specific_with => '+DuckType',
+    specific_with => [qw/
+        +DuckType
+        +Hook
+        +Plugin
+    /],
 );
 
 1;

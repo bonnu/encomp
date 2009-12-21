@@ -112,7 +112,7 @@ ok  +Foo::Controller->isa('Encomp::Class::Controller');
 Foo->operate('Foo::Controller');
 
 is_deeply
-    +Class::Inspector->methods('Foo::_complexed::Foo::Controller'),
+    +Class::Inspector->methods('Foo::_complexed::Foo::Controller::_'),
     [qw/
         AUTOLOAD
         can
@@ -139,7 +139,3 @@ is_deeply
         ] =>
         finalize   =>
     ];
-
-use Data::Dumper;
-print Dumper(Foo::_complexed::Foo::Controller->complex);
-
