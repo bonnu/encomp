@@ -6,9 +6,14 @@ use Encomp::Meta::ProcessingNode;
 
 Encomp::Class->setup_metadata(node => sub { Encomp::Meta::ProcessingNode->new });
 
+sub build {
+    my ($class, $controller) = @_;
+    Encomp::Complex->build($class => $controller);
+}
+
 sub operate {
     my ($class, $controller, @args) = @_;
-    my $obj   = Encomp::Complex->build($class => $controller);
+    my $obj   = build($class => $controller);
     my $hooks = $obj->complex->{hooks};
     $class->node->invoke(sub {
         my ($self, $context) = @_;

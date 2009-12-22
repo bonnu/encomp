@@ -63,18 +63,21 @@ sub _initialize_complex {
 sub _conflate {
     my ($complex, $encompasser, $controller, $adhoc) = @_;
     my @classes;
-    my @exporters;
     for my $class (uniq $controller, $encompasser, @{$adhoc}) {
         Encomp::Util::load_class($class);
         $class->composite->compile_depending_plugins;
-        push @classes,   @{$class->composite->depending_plugins};
+        push @classes, @{$class->composite->depending_plugins};
+    }
+    @classes = uniq @classes;
+    my @exporters;
+    for my $class (@classes) {
         push @exporters, Encomp::Exporter->get_coated_base_classes($class);
     }
-    @classes   = uniq @classes;
     @exporters = uniq @exporters;
+    $complex->{classes}   = \@classes;
+    $complex->{exporters} = \@exporters;
     for my $exporter (@exporters) {
-        map { $_->($complex, @classes) }
-            Encomp::Exporter->get_setup_methods($exporter);
+        map { $_->($complex) } Encomp::Exporter->get_setup_methods($exporter);
     }
     return 1;
 }

@@ -19,7 +19,7 @@ sub get_coated_base_classes {
     my ($class, $applicant) = @_;
     my @specific;
     for my $base (keys %{$ADDED{$applicant}}) {
-        push @specific, $base, @{$ADDED{$applicant}{$base}};
+        push @specific, @{$ADDED{$applicant}{$base}}, $base;
     }
     uniq @specific;
 }

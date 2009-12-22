@@ -1,14 +1,14 @@
 package Encomp::Specific::Hook;
 
 use Encomp::Exporter;
-use parent qw/Encomp::Base/;
+use base qw/Encomp::Base/;
 
 Encomp::Exporter->setup_suger_features(
     as_is => [qw/hook_to/],
     setup => sub {
-        my ($complex, @classes) = @_;
+        my $complex = shift;
         my %hooks;
-        for my $class (@classes) {
+        for my $class (@{$complex->{classes}}) {
             my $hooks = $class->composite->hooks;
             for my $point (keys %{$hooks}) {
                 push @{$hooks{$point} ||= []}, @{$hooks->{$point}};

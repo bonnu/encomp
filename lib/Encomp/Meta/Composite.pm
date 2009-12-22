@@ -9,6 +9,7 @@ __PACKAGE__->mk_accessors qw/
     applicant
     hooks
     plugins
+    unplug
     depending_plugins
 /;
 
@@ -18,6 +19,7 @@ sub new {
         applicant         => $applicant,
         hooks             => {},
         plugins           => [],
+        unplug            => [],
         depending_plugins => undef,
     });
     return $self;
@@ -34,11 +36,25 @@ sub get_method_of_plugin {
 
 sub add_plugins {
     my ($self, @plugins) = @_;
+    my @added;
     for my $plugin (uniq @plugins) {
         next if grep { $_ eq $plugin } @{$self->plugins};
         Encomp::Util::load_class($plugin);
         push @{$self->plugins}, $plugin;
+        push @added, $plugin;
     }
+    $self->_delete_elements_inc_in_list($self->unplug, \@added);
+}
+
+sub add_unplug {
+    my ($self, @unplug) = @_;
+    my @added;
+    for my $unplug (uniq @unplug) {
+        next if grep { $_ eq $unplug } @{$self->unplug};
+        push @{$self->unplug}, $unplug;
+        push @added, $unplug;
+    }
+    $self->_delete_elements_inc_in_list($self->plugins, \@added);
 }
 
 sub add_hook {
@@ -66,10 +82,24 @@ sub compile_depending_plugins {
             $plugin->composite->compile_depending_plugins(\@plugins);
         }
         @plugins = uniq @plugins, $self->applicant; # add self
+        $self->_delete_elements_inc_in_list(\@plugins, $self->unplug);
         $self->depending_plugins(\@plugins);
     }
     if (0 < @_ && ref $_[0] eq 'ARRAY') {
         push @{$_[0]}, @plugins;
+    }
+}
+
+sub _delete_elements_inc_in_list {
+    my ($self, $list, $del_list) = @_;
+    $del_list = [ $del_list ] unless ref $del_list && ref $del_list eq 'ARRAY';
+    for (my $i = 0; $i < @{$list};) {
+        if (grep { $_ eq $list->[$i] } @{$del_list}) {
+            splice @{$list}, $i, 1;
+        }
+        else {
+            $i++;
+        }
     }
 }
 
@@ -86,8 +116,6 @@ Encomp::Meta::Composite
  my $composite = Encomp::Meta::Composite->new($owner_class);
 
 =head1 DESCRIPTION
-
-
 
 =head1 AUTHOR
 

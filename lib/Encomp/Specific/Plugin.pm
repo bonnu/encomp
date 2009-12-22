@@ -1,26 +1,27 @@
 package Encomp::Specific::Plugin;
 
 use Encomp::Exporter;
-use parent qw/Encomp::Base/;
+use base qw/Encomp::Base/;
 use Encomp::Util;
 use Carp qw/croak/;
 
 Encomp::Exporter->setup_suger_features(
-    as_is => [qw/plugins +AUTOLOAD/],
+    as_is => [qw/plugins unplug +AUTOLOAD/],
     setup => sub {
-        my ($complex, @classes) = @_;
+        my $complex = shift;
         my %methods;
-        for my $class (@classes) {
+        for my $class (@{$complex->{classes}}) {
             my %stash = %{ Encomp::Util::get_stash($class) };
             @methods{keys %stash} = values %stash;
         }
-        delete @methods{qw/
-            __ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY
-            can isa import unimport
-            composite
-        /};
-        delete $methods{$_} for grep /^_/, keys %methods;
-        delete $methods{$_} for grep /(?:^EXPORT.*|::$)/o, keys %methods;
+        delete @methods{
+            qw/
+                __ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY
+                can isa import unimport composite
+            /,
+            (grep /^_/, keys %methods),
+            (grep /(?:^EXPORT.*|::$)/o, keys %methods),
+        };
         $complex->{methods} = \%methods;
     },
 );
@@ -28,7 +29,13 @@ Encomp::Exporter->setup_suger_features(
 sub plugins {
     my $class   = caller;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
-    my $loaded  = $class->composite->add_plugins(@plugins);
+    $class->composite->add_plugins(@plugins);
+}
+
+sub unplug {
+    my $class   = caller;
+    my @plugins = ref $_[0] ? @{$_[0]} : @_;
+    $class->composite->add_unplug(@plugins);
 }
 
 sub AUTOLOAD {
