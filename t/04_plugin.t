@@ -36,7 +36,7 @@ BEGIN {
 
     plugins 'Foo::Plugin::C';
 
-    unplug  'Foo::Plugin::A';
+    plugout 'Foo::Plugin::A';
 
     sub d { __PACKAGE__ }
 

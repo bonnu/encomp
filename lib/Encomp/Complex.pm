@@ -36,7 +36,10 @@ sub _initialize {
 sub _initial_args {
     my ($encompasser, $controller) = @_;
     my @adhoc;
-    confess 'controller name is required.' unless $controller;
+#   confess 'controller name is required.' unless $controller;
+    unless ($controller) {
+        $controller = $encompasser;
+    }
     if (ref $controller eq 'ARRAY') {
         @adhoc      = @{$controller};
         $controller = shift @adhoc;

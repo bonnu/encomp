@@ -7,20 +7,22 @@ use Sub::Name qw/subname/;
 
 __PACKAGE__->mk_accessors qw/
     applicant
+    depending_plugins
     hooks
     plugins
-    unplug
-    depending_plugins
+    plugout
+    stash
 /;
 
 sub new {
     my ($class, $applicant) = @_;
     my $self = $class->SUPER::new({
         applicant         => $applicant,
+        depending_plugins => undef,
         hooks             => {},
         plugins           => [],
-        unplug            => [],
-        depending_plugins => undef,
+        plugout           => [],
+        stash             => {},
     });
     return $self;
 }
@@ -43,16 +45,16 @@ sub add_plugins {
         push @{$self->plugins}, $plugin;
         push @added, $plugin;
     }
-    $self->_delete_elements_inc_in_list($self->unplug, \@added);
+    $self->_delete_elements_inc_in_list($self->plugout, \@added);
 }
 
-sub add_unplug {
-    my ($self, @unplug) = @_;
+sub add_plugout {
+    my ($self, @plugout) = @_;
     my @added;
-    for my $unplug (uniq @unplug) {
-        next if grep { $_ eq $unplug } @{$self->unplug};
-        push @{$self->unplug}, $unplug;
-        push @added, $unplug;
+    for my $plugout (uniq @plugout) {
+        next if grep { $_ eq $plugout } @{$self->plugout};
+        push @{$self->plugout}, $plugout;
+        push @added, $plugout;
     }
     $self->_delete_elements_inc_in_list($self->plugins, \@added);
 }
@@ -82,7 +84,7 @@ sub compile_depending_plugins {
             $plugin->composite->compile_depending_plugins(\@plugins);
         }
         @plugins = uniq @plugins, $self->applicant; # add self
-        $self->_delete_elements_inc_in_list(\@plugins, $self->unplug);
+        $self->_delete_elements_inc_in_list(\@plugins, $self->plugout);
         $self->depending_plugins(\@plugins);
     }
     if (0 < @_ && ref $_[0] eq 'ARRAY') {

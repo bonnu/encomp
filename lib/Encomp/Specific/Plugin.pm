@@ -6,19 +6,17 @@ use Encomp::Util;
 use Carp qw/croak/;
 
 Encomp::Exporter->setup_suger_features(
-    as_is => [qw/plugins unplug +AUTOLOAD/],
+    as_is => [qw/plugins plugout +AUTOLOAD/],
     setup => sub {
         my $complex = shift;
         my %methods;
         for my $class (@{$complex->{classes}}) {
-            my %stash = %{ Encomp::Util::get_stash($class) };
+            my %stash = %{Encomp::Util::get_stash($class)};
             @methods{keys %stash} = values %stash;
         }
         delete @methods{
-            qw/
-                __ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY
-                can isa import unimport composite
-            /,
+            qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
+            qw/can isa import unimport composite/,
             (grep /^_/, keys %methods),
             (grep /(?:^EXPORT.*|::$)/o, keys %methods),
         };
@@ -32,10 +30,10 @@ sub plugins {
     $class->composite->add_plugins(@plugins);
 }
 
-sub unplug {
+sub plugout {
     my $class   = caller;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
-    $class->composite->add_unplug(@plugins);
+    $class->composite->add_plugout(@plugins);
 }
 
 sub AUTOLOAD {
