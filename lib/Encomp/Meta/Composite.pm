@@ -29,8 +29,8 @@ sub new {
 
 sub get_method_of_plugin {
     my ($self, $name) = @_;
-    $self->compile_depending_plugins;
-    for my $plugin (reverse @{$self->depending_plugins}) {
+    my @plugins = @{$self->load_depending_plugins};
+    for my $plugin (reverse @plugins) {
         my $code = $plugin->can($name) || next;
         return $code;
     }
@@ -79,17 +79,24 @@ sub compile_depending_plugins {
         @plugins = @{$ret};
     }
     else {
-        for my $plugin (@{$self->plugins}) {
-            next if grep { $_ eq $plugin } @plugins;
-            $plugin->composite->compile_depending_plugins(\@plugins);
-        }
-        @plugins = uniq @plugins, $self->applicant; # add self
-        $self->_delete_elements_inc_in_list(\@plugins, $self->plugout);
+        @plugins = @{$self->load_depending_plugins};
         $self->depending_plugins(\@plugins);
     }
     if (0 < @_ && ref $_[0] eq 'ARRAY') {
         push @{$_[0]}, @plugins;
     }
+}
+
+sub load_depending_plugins {
+    my $self = shift;
+    my @plugins;
+    for my $plugin (@{$self->plugins}) {
+        next if grep { $_ eq $plugin } @plugins;
+        $plugin->composite->compile_depending_plugins(\@plugins);
+    }
+    @plugins = uniq @plugins, $self->applicant; # add self
+    $self->_delete_elements_inc_in_list(\@plugins, $self->plugout);
+    return \@plugins;
 }
 
 sub _delete_elements_inc_in_list {
