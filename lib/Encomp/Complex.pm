@@ -1,88 +1,32 @@
 package Encomp::Complex;
 
 use Encomp::Util;
-use Encomp::Exporter;
-use Carp qw/croak confess/;
+require Encomp::Base;
+use Carp qw/croak/;
 use Digest::MD5 qw/md5_hex/;
-use List::MoreUtils qw/uniq/;
 use UNIVERSAL::can;
 
-my %COMPLEX;
-
-sub all_complex { \%COMPLEX }
-
 sub build {
-    my $class = shift;
-    bless {}, _initialize(@_);
+    my $class   = shift;
+    my $package = _initialize(@_);
+    bless {}, $package;
 }
 
 sub _initialize {
-    my ($encompasser, $controller, $adhoc) = _initial_args(@_);
-    my $id        = 0 < @{$adhoc} ? '_' . md5_hex join '', sort @{$adhoc} : '_';
-    my $namespace = _generate_namespace($encompasser, $controller, $id);
-    my $complex   = _initialize_complex($encompasser, $controller, $id);
-    if ($complex) {
-        _conflate($complex, $encompasser, $controller, $adhoc);
+    my ($encompasser, $adhoc) = @_;
+    my @adhoc   = ($adhoc && ref $adhoc) ? @{$adhoc} : $adhoc || ();
+    my $id      = '_' . (0 < @adhoc ? md5_hex join '', sort @adhoc : '');
+    my $package = join '::', $encompasser, '_complexed', $id;
+    unless (Encomp::Util::get_code_ref($package, 'complex')) {
+        my $complex = Encomp::Base->conflate($encompasser, @adhoc);
         Encomp::Util::reinstall_subroutine(
-            $namespace,
+            $package,
             AUTOLOAD => \&_autoload,
             can      => \&_can,
             complex  => sub { $complex },
         );
     }
-    return $namespace;
-}
-
-sub _initial_args {
-    my ($encompasser, $controller) = @_;
-    my @adhoc;
-#   confess 'controller name is required.' unless $controller;
-    unless ($controller) {
-        $controller = $encompasser;
-    }
-    if (ref $controller eq 'ARRAY') {
-        @adhoc      = @{$controller};
-        $controller = shift @adhoc;
-    }
-    return ($encompasser, $controller, \@adhoc);
-}
-
-sub _generate_namespace {
-    my ($encompasser, $controller, $id) = @_;
-    return join '::',
-        $encompasser, '_complexed', $controller, $id;
-}
-
-sub _initialize_complex {
-    my ($encompasser, $controller, $id) = @_;
-    my $complex = \%COMPLEX;
-    for my $namespace ($encompasser, $controller, $id) {
-        $complex = $complex->{$namespace} ||= {};
-    }
-    return if 0 < keys %{$complex};
-    return $complex;
-}
-
-sub _conflate {
-    my ($complex, $encompasser, $controller, $adhoc) = @_;
-    my @classes;
-    for my $class (uniq $controller, $encompasser, @{$adhoc}) {
-        Encomp::Util::load_class($class);
-        $class->composite->compile_depending_plugins;
-        push @classes, @{$class->composite->depending_plugins};
-    }
-    @classes = uniq @classes;
-    my @exporters;
-    for my $class (@classes) {
-        push @exporters, Encomp::Exporter->get_coated_base_classes($class);
-    }
-    @exporters = uniq @exporters;
-    $complex->{classes}   = \@classes;
-    $complex->{exporters} = \@exporters;
-    for my $exporter (@exporters) {
-        map { $_->($complex) } Encomp::Exporter->get_setup_methods($exporter);
-    }
-    return 1;
+    return $package;
 }
 
 sub _autoload {
@@ -90,9 +34,9 @@ sub _autoload {
     my $name  = our $AUTOLOAD;
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
-    my $ns = $1;
+    my $package = $1;
     if (my $symbol = $proto->complex->{methods}{$name}) {
-        Encomp::Util::reinstall_subroutine($ns, $name => \&{$symbol});
+        Encomp::Util::reinstall_subroutine($package, $name => \&{$symbol});
         goto \&{$symbol};
     }
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';

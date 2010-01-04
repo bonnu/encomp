@@ -10,7 +10,7 @@ Encomp::Exporter->setup_suger_features(
     setup => sub {
         my $complex = shift;
         my %methods;
-        for my $class (@{$complex->{classes}}) {
+        for my $class (@{$complex->{loaded}}) {
             my %stash = %{Encomp::Util::get_stash($class)};
             @methods{keys %stash} = values %stash;
         }

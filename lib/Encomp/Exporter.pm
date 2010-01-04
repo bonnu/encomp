@@ -15,7 +15,7 @@ sub import {
     ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
 }
 
-sub get_coated_base_classes {
+sub get_coated_base_exporters {
     my ($class, $applicant) = @_;
     my @specific;
     for my $base (keys %{$ADDED{$applicant}}) {

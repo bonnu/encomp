@@ -112,7 +112,7 @@ ok  +Foo::Controller->isa('Encomp::Class::Controller');
 Foo->operate('Foo::Controller');
 
 is_deeply
-    +Class::Inspector->methods('Foo::_complexed::Foo::Controller::_'),
+    +Class::Inspector->methods('Foo::_complexed::_2557014b051ce737c16a9c518d43e1d0'),
     [qw/
         AUTOLOAD
         can

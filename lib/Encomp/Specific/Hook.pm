@@ -8,7 +8,7 @@ Encomp::Exporter->setup_suger_features(
     setup => sub {
         my $complex = shift;
         my %hooks;
-        for my $class (@{$complex->{classes}}) {
+        for my $class (@{$complex->{loaded}}) {
             my $hooks = $class->composite->hooks;
             for my $point (keys %{$hooks}) {
                 push @{$hooks{$point} ||= []}, @{$hooks->{$point}};

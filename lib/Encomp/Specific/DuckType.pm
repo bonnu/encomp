@@ -10,7 +10,7 @@ Encomp::Exporter->setup_suger_features(
         my $complex = shift;
         my $methods = $complex->{methods};
         my %duck_type;
-        for my $class (@{$complex->{classes}}) {
+        for my $class (@{$complex->{loaded}}) {
             my $stash = $class->composite->stash->{duck_type};
             next unless $stash;
             for my $name (keys %{$stash}) {
