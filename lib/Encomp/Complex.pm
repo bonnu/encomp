@@ -15,7 +15,7 @@ sub build {
 sub _initialize {
     my ($encompasser, $adhoc) = @_;
     my @adhoc   = ($adhoc && ref $adhoc) ? @{$adhoc} : $adhoc || ();
-    my $id      = '_' . (0 < @adhoc ? md5_hex join '', sort @adhoc : '');
+    my $id      = '_' . (0 < @adhoc ? md5_hex join '/', sort @adhoc : '');
     my $package = join '::', $encompasser, '_complexed', $id;
     unless (Encomp::Util::get_code_ref($package, 'complex')) {
         my $complex = Encomp::Base->conflate($encompasser, @adhoc);

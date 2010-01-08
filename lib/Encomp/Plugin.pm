@@ -10,6 +10,7 @@ Encomp::Exporter->setup_suger_features(
         +DuckType
         +Hook
         +Plugin
+        +PluginConfig
     /],
 );
 

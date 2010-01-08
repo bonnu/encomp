@@ -16,7 +16,8 @@ Encomp::Exporter->setup_suger_features(
         }
         delete @methods{
             qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
-            qw/can isa import unimport composite/,
+            qw/can isa import unimport/,
+            qw/composite/,
             (grep /^_/, keys %methods),
             (grep /(?:^EXPORT.*|::$)/o, keys %methods),
         };

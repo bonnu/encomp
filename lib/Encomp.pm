@@ -10,6 +10,7 @@ Encomp::Exporter->setup_suger_features(
     as_is         => [qw/processes/],
     specific_ns   => 'Encomp::Specific',
     specific_with => [qw/
+        +Config
         +DuckType
         +Hook
         +Plugin

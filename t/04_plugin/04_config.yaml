@@ -1,0 +1,6 @@
+common:
+    foo: FOO
+    baz: 1.111
+
+plugins:
+    fuga: 2
