@@ -2,12 +2,15 @@ package Encomp;
 
 use Encomp::Exporter;
 use base qw/Encomp::Base/;
+use Carp qw/croak/;
 
 our $VERSION = '0.01';
 
+my $applicant = 'Encomp::Class::Encompasser';
+
 Encomp::Exporter->setup_suger_features(
-    applicant_isa => 'Encomp::Class::Encompasser',
-    as_is         => [qw/processes/],
+    applicant_isa => $applicant,
+    as_is         => [qw/processes incorporate/],
     specific_ns   => 'Encomp::Specific',
     specific_with => [qw/
         +Config
@@ -20,6 +23,15 @@ Encomp::Exporter->setup_suger_features(
 sub processes {
     my $class = caller;
     $class->node->append_nodes(@_);
+}
+
+sub incorporate {
+    my $class  = caller;
+    my $plugin = shift;
+    Encomp::Util::load_class($plugin);
+    croak "Target plugin isn't isa('$applicant')" unless $plugin->isa($applicant);
+    $class->node->append_nodes($plugin->node->get_all_ids);
+    $class->composite->add_plugins($plugin);
 }
 
 1;

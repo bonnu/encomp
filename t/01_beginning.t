@@ -16,9 +16,9 @@ ENCOMPASSER_DEFINITION_BLOCK :
     processes
         initialize =>
         dispatch   => [
-           before  =>
-           main    =>
-           after   =>
+            before =>
+            main   =>
+            after  =>
         ] =>
         finalize   =>
     ;
@@ -109,10 +109,10 @@ ok  +Foo::Plugin::A ->isa('Encomp::Class::Plugin');
 ok  +Foo::Plugin::B ->isa('Encomp::Class::Plugin');
 ok  +Foo::Controller->isa('Encomp::Class::Controller');
 
-Foo->operate('Foo::Controller');
+my $foo = Foo->operate('Foo::Controller');
 
 is_deeply
-    +Class::Inspector->methods('Foo::_complexed::_2557014b051ce737c16a9c518d43e1d0'),
+    +Class::Inspector->methods(ref $foo),
     [qw/
         AUTOLOAD
         can

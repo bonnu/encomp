@@ -7,7 +7,7 @@ BEGIN {
     package Foo::Encompasser::A;
     use Encomp;
 
-    config "$FindBin::Bin/04_config.yaml";
+    config '04_config.yaml';
 
     no  Encomp;
 

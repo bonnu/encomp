@@ -9,6 +9,13 @@ BEGIN {
     class_accessor foo => 'hello';
 
     no  Encomp::Plugin;
+
+    package Foo::Plugin::B;
+    use Encomp::Plugin;
+
+    plugins qw/Foo::Plugin::A/;
+
+    no  Encomp::Plugin;
 }
 
 package Foo;
@@ -21,10 +28,21 @@ hook_to '/main' => sub {
 };
 no  Encomp;
 
+package Foo2;
+use Encomp;
+plugins qw/Foo/;
+no  Encomp;
+
 package main;
 
-# diag 'retry: Isn\'t there influence in the class data?';
+note 'retry: Isn\'t there influence in the class data?';
 for (0 .. 1) {
     is  +Foo->build->foo, 'hello';
     is  +Foo->operate->foo, 'world';
+}
+
+note 'retry: Isn\'t there influence in the inherited class data?';
+for (0 .. 1) {
+    is  +Foo2->build->foo, 'hello';
+    is  +Foo2->operate->foo, 'world';
 }

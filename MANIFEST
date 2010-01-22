@@ -24,9 +24,11 @@ lib/Encomp/Meta/ProcessingNode.pm
 lib/Encomp/Plugin.pm
 lib/Encomp/Specific/Accessor.pm
 lib/Encomp/Specific/ClassAccessor.pm
+lib/Encomp/Specific/Config.pm
 lib/Encomp/Specific/DuckType.pm
 lib/Encomp/Specific/Hook.pm
 lib/Encomp/Specific/Plugin.pm
+lib/Encomp/Specific/PluginConfig.pm
 lib/Encomp/Util.pm
 Makefile.PL
 MANIFEST			This list of files
@@ -40,6 +42,8 @@ t/04_plugin.t
 t/04_plugin/01_accessor.t
 t/04_plugin/02_class_accessor.t
 t/04_plugin/03_ducktype.t
+t/04_plugin/04_config.t
+t/04_plugin/04_config.yaml
 t/05_process.t
 t/benchmark.pl
 t/lib/DemoFW.pm
