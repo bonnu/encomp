@@ -30,7 +30,11 @@ no  Encomp;
 
 package Foo2;
 use Encomp;
-plugins qw/Foo/;
+incorporate 'Foo';
+hook_to '/main' => sub {
+    my $self = shift;
+    $self->foo($self->foo . '!!');
+};
 no  Encomp;
 
 package main;
@@ -44,5 +48,5 @@ for (0 .. 1) {
 note 'retry: Isn\'t there influence in the inherited class data?';
 for (0 .. 1) {
     is  +Foo2->build->foo, 'hello';
-    is  +Foo2->operate->foo, 'world';
+    is  +Foo2->operate->foo, 'world!!';
 }

@@ -35,8 +35,13 @@ use Test::More 'no_plan';
 
     incorporate 'Bar';
 
+    hook_to '/main' => sub {
+        my $self = shift;
+        $self->message($self->message . ' world');
+    };
+
     no  Encomp;
 }
 
-is 'hello', Bar->operate->message;
-is 'hello', Baz->operate->message;
+is 'hello',       Bar->operate->message;
+is 'hello world', Baz->operate->message;
