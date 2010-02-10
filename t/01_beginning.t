@@ -112,23 +112,6 @@ ok  +Foo::Controller->isa('Encomp::Class::Controller');
 my $foo = Foo->operate('Foo::Controller');
 
 is_deeply
-    +Class::Inspector->methods(ref $foo),
-    [qw/
-        AUTOLOAD
-        can
-        complex
-        data
-        incr
-        method_a
-        method_b
-        method_c
-        method_overrided
-        test_01
-        test_02
-    /],
-    'deeply';
-
-is_deeply
     [ Foo->node->get_all_ids ],
     [
         initialize =>
