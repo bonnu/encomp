@@ -24,6 +24,7 @@ sub _initialize {
             AUTOLOAD => \&_autoload,
             can      => \&_can,
             complex  => sub { $complex },
+            context  => sub { $_[0]->{context} },
         );
     }
     return $package;
