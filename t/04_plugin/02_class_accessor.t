@@ -15,6 +15,8 @@ BEGIN {
 
     plugins qw/Foo::Plugin::A/;
 
+    __PACKAGE__->foo('bye');
+
     no  Encomp::Plugin;
 }
 
@@ -37,6 +39,12 @@ hook_to '/main' => sub {
 };
 no  Encomp;
 
+package Foo3;
+use Encomp;
+incorporate 'Foo';
+plugins 'Foo::Plugin::B';
+no  Encomp;
+
 package main;
 
 note 'retry: Isn\'t there influence in the class data?';
@@ -49,4 +57,10 @@ note 'retry: Isn\'t there influence in the inherited class data?';
 for (0 .. 1) {
     is  +Foo2->build->foo, 'hello';
     is  +Foo2->operate->foo, 'world!!';
+}
+
+note 'retry: Isn\'t there influence in the inherited class data?';
+for (0 .. 1) {
+    is  +Foo3->build->foo, 'bye';
+    is  +Foo3->operate->foo, 'world';
 }

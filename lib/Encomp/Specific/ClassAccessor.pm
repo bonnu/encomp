@@ -30,12 +30,8 @@ sub _make_class_accessor {
         carp "$fullname accessor has been defined."
             unless do { no strict 'refs'; defined &{"${class}::complex"} };
     }
-    Sub::Name::subname($fullname, $accessor);
-    do {
-        no warnings 'redefine';
-        no strict   'refs';
-        *{$fullname} = $accessor;
-    };
+    Encomp::Util::reinstall_subroutine($class, $field => $accessor);
+    $accessor;
 }
 
 sub _make_class_data_accessor {

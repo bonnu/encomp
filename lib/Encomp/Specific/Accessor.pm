@@ -6,6 +6,7 @@ use Encomp::Exporter;
 
 use Carp qw/croak/;
 use Sub::Name ();
+use Encomp::Util;
 
 Encomp::Exporter->setup_suger_features(as_is => [qw/accessor accessors/]);
 
@@ -32,11 +33,7 @@ sub _make_accessors {
         if (defined &{$fullname}) {
             croak "$fullname accessor has been defined.";
         }
-        Sub::Name::subname($fullname, $accessor);
-        do {
-            no strict 'refs';
-            *{$fullname} = $accessor;
-        };
+        Encomp::Util::reinstall_subroutine($class, $field => $accessor);
     }
 }
 
