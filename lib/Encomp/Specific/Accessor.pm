@@ -5,7 +5,6 @@ use Encomp::Exporter;
 # Class::Accessor::Fast is respected.
 
 use Carp qw/croak/;
-use Sub::Name ();
 use Encomp::Util;
 
 Encomp::Exporter->setup_suger_features(as_is => [qw/accessor accessors/]);

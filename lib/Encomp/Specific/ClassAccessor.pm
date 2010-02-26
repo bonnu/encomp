@@ -5,7 +5,6 @@ use Encomp::Exporter;
 # Class::Data::Accessor is respected.
 
 use Carp qw/carp croak/;
-use Sub::Name ();
 
 Encomp::Exporter->setup_suger_features(as_is => [qw/class_accessor/]);
 

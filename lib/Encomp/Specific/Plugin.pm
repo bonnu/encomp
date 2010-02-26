@@ -2,26 +2,19 @@ package Encomp::Specific::Plugin;
 
 use Encomp::Exporter;
 use base qw/Encomp::Base/;
+use Carp qw/croak confess/;
+use Encomp::Complex;
 use Encomp::Util;
-use Carp qw/croak/;
+
+our $AUTOLOAD;
 
 Encomp::Exporter->setup_suger_features(
-    as_is => [qw/plugins plugout +AUTOLOAD/],
+    as_is => [qw/plugins plugout/],
     setup => sub {
         my $complex = shift;
-        my %methods;
-        for my $class (@{$complex->{loaded}}) {
-            my %stash = %{Encomp::Util::get_stash($class)};
-            @methods{keys %stash} = values %stash;
-        }
-        delete @methods{
-            qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
-            qw/can isa import unimport/,
-            qw/composite/,
-            (grep /^_/, keys %methods),
-            (grep /(?:^EXPORT.*|::$)/o, keys %methods),
-        };
-        $complex->{methods} = \%methods;
+        my $symbols = Encomp::Util::collect_public_symbols(@{$complex->{loaded}});
+        delete $symbols->{composite};
+        $complex->{methods} = $symbols;
     },
 );
 
@@ -35,17 +28,6 @@ sub plugout {
     my $class   = caller;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
     $class->composite->add_plugout(@plugins);
-}
-
-sub AUTOLOAD {
-    my $proto = $_[0];
-    my $name  = our $AUTOLOAD;
-    $name =~ s/(^.*):://o;
-    $name eq 'DESTROY' && return;
-    if (my $code = $proto->composite->get_method_of_plugin($name)) {
-        goto \&{$code};
-    }
-    croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
 }
 
 1;

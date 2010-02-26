@@ -135,6 +135,22 @@ sub reinstall_subroutine {
     install_subroutine(@_);
 }
 
+sub collect_public_symbols {
+    my @classes = @_;
+    my %symbols;
+    for my $class (@classes) {
+        my $stash = Encomp::Util::get_stash($class);
+        @symbols{keys %{$stash}} = values %{$stash};
+    }
+    delete @symbols{
+        qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
+        qw/can isa import unimport/,
+        (grep /^_/, keys %symbols),
+        (grep /(?:^EXPORT.*|::$)/o, keys %symbols),
+    };
+    return \%symbols;
+}
+
 1;
 
 __END__
