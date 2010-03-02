@@ -24,7 +24,6 @@ sub new {
         plugins           => [],
         plugout           => [],
         stash             => {},
-        _current_loaded   => [],
     });
     return $self;
 }
@@ -48,17 +47,6 @@ sub add_plugins {
         push @added, $plugin;
     }
     _delete_elements_inc_in_list($self->plugout, \@added);
-    # install methods
-    my $old = $self->_current_loaded;
-    my $new = $self->load_depending_plugins;
-    my $cmp = List::Compare::Functional::get_complement_ref([ $old, $new ]);
-    my $methods = Encomp::Util::collect_public_symbols(@{$cmp});
-    delete $methods->{composite};
-    Encomp::Util::reinstall_subroutine(
-        $self->applicant,
-        map { $_ => \&{$methods->{$_}} } keys %$methods,
-    );
-    $self->_current_loaded($new);
 }
 
 sub add_plugout {
@@ -70,14 +58,6 @@ sub add_plugout {
         push @added, $plugout;
     }
     _delete_elements_inc_in_list($self->plugins, \@added);
-    my $old = $self->_current_loaded;
-    my $new = $self->load_depending_plugins;
-    my $cmp = List::Compare::Functional::get_complement_ref([ $new, $old ]);
-    # uninstall methods
-    my $methods = Encomp::Util::collect_public_symbols(@{$cmp});
-    delete $methods->{composite};
-    Encomp::Util::uninstall_subroutine($self->applicant, keys %$methods);
-    $self->_current_loaded($new);
 }
 
 sub add_hook {
@@ -85,9 +65,10 @@ sub add_hook {
     my $hooks  = $self->hooks->{$hook} ||= [];
     my $number = int @{$hooks};
     $hook =~ s!/!_!go;
-    my $name = "$hook\_$number";
+    my $name     = "$hook\_$number";
+    my $fullname = $self->applicant . "::$name";
     Encomp::Util::reinstall_subroutine($self->applicant, $name => $callback);
-    push @{$hooks}, $callback;
+    push @{$hooks}, do { no strict 'refs'; *{$fullname} };
 }
 
 sub compile_depending_plugins {

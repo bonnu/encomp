@@ -3,6 +3,7 @@ package Encomp::Util;
 use strict;
 use warnings;
 use Carp qw/confess/;
+use Class::Inspector;
 use Data::Util qw/:all/;
 
 use constant _strict_bits => strict::bits(qw/subs refs vars/);
@@ -135,20 +136,21 @@ sub reinstall_subroutine {
     install_subroutine(@_);
 }
 
-sub collect_public_symbols {
+sub collect_public_methods {
     my @classes = @_;
-    my %symbols;
+    my %methods;
     for my $class (@classes) {
         my $stash = Encomp::Util::get_stash($class);
-        @symbols{keys %{$stash}} = values %{$stash};
+        my @keys  = grep { defined &{"${class}::$_"} } keys %$stash;
+        @methods{@keys} = map { \&{$_} } @{$stash}{@keys};
     }
-    delete @symbols{
+    delete @methods{
         qw/__ANON__ ISA BEGIN CHECK INIT END AUTOLOAD DESTROY/,
         qw/can isa import unimport/,
-        (grep /^_/, keys %symbols),
-        (grep /(?:^EXPORT.*|::$)/o, keys %symbols),
+        (grep /^_/, keys %methods),
+        (grep /(?:^EXPORT.*|::$)/o, keys %methods),
     };
-    return \%symbols;
+    return \%methods;
 }
 
 1;
