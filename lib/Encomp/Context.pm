@@ -5,14 +5,15 @@ use warnings;
 use base qw/Class::Accessor::Fast/;
 use Carp qw/croak/;
 
-__PACKAGE__->mk_accessors qw/return skip error _goto/;
+__PACKAGE__->mk_accessors qw/return skip _goto/;
+#__PACKAGE__->mk_accessors qw/return skip error _goto/;
 
 sub new {
     my $class = shift;
     $class->SUPER::new({
         return  => 0,
         skip    => 0,
-        errors  => [],
+#       errors  => [],
         current => undef,
         _goto   => undef,
     });
@@ -24,7 +25,6 @@ sub current {
         $self->{current} = $hook;
         return unless $self->{skip};
         if ($hook eq $self->{_goto}) {
-            $self->skip(0);
             $self->clear_goto;
         }
     }
@@ -48,11 +48,16 @@ sub goto {
     }
 }
 
-sub clear_goto    { undef $_[0]->{_goto} }
-sub error_number  { scalar @{ $_[0]->errors } }
-sub has_error     { scalar @{ $_[0]->errors } ? 1 : 0 }
-sub add_errors    { push @{ shift->errors } => @_ }
-sub clear_errors  { @{ $_[0]->errors } = () }
+sub clear_goto {
+    my $self = shift;
+    $self->_goto(undef);
+    $self->skip(0);
+}
+
+#sub error_number  { scalar @{ $_[0]->errors } }
+#sub has_error     { scalar @{ $_[0]->errors } ? 1 : 0 }
+#sub add_errors    { push @{ shift->errors } => @_ }
+#sub clear_errors  { @{ $_[0]->errors } = () }
 
 1;
 

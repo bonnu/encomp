@@ -20,7 +20,7 @@ sub operate {
         $obj->{context} = $context;
         if (my $codes = $hooks->{$self->{path_cached} || $self->get_path}) {
             for my $code (@{$codes}) {
-                $code->($obj, $context, @args);
+                $code->($obj, @args);
             }
         }
         undef $obj->{context};

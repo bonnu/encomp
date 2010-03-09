@@ -12,18 +12,18 @@ plugins 'DemoFW::Plugin::Response';
 
 hook_to '/initialize' =>
 sub {
-    my ($self, $context, @args) = @_;
+    my ($self, @args) = @_;
 };
 
 hook_to '/main' =>
 sub {
-    my ($self, $context, @args) = @_;
+    my ($self, @args) = @_;
     $self->dispatch;
 };
 
 hook_to '/finalize' =>
 sub {
-    my ($self, $context, @args) = @_;
+    my ($self, @args) = @_;
     print $self->headers_out;
     print "\n";
     print $self->output;

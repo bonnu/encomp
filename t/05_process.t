@@ -16,25 +16,25 @@ processes
     5 => [qw/ 1 2 3 /],
 ;
 
-hook_to '/1/1' => sub { my ($self, $ctx) = @_; $self->body('/1/1'); $ctx->goto('/2')   };
-hook_to '/1/2' => sub { my ($self, $ctx) = @_; $self->body('/1/2'); $ctx->goto('/2/2') };
-hook_to '/1/3' => sub { my ($self, $ctx) = @_; $self->body('/1/3'); $ctx->goto('/2/3') };
-
-hook_to '/2/1' => sub { my ($self, $ctx) = @_; $self->body('/2/1'); $ctx->goto('/3')   };
-hook_to '/2/2' => sub { my ($self, $ctx) = @_; $self->body('/2/2'); $ctx->goto('/3/2') };
-hook_to '/2/3' => sub { my ($self, $ctx) = @_; $self->body('/2/3'); $ctx->goto('/3/3') };
-
-hook_to '/3/1' => sub { my ($self, $ctx) = @_; $self->body('/3/1'); $ctx->goto('/4')   };
-hook_to '/3/2' => sub { my ($self, $ctx) = @_; $self->body('/3/2'); $ctx->goto('/4/2') };
-hook_to '/3/3' => sub { my ($self, $ctx) = @_; $self->body('/3/3'); $ctx->goto('/4/3') };
-
-hook_to '/4/1' => sub { my ($self, $ctx) = @_; $self->body('/4/1'); $ctx->goto('/5')   };
-hook_to '/4/2' => sub { my ($self, $ctx) = @_; $self->body('/4/2'); $ctx->goto('/5/2') };
-hook_to '/4/3' => sub { my ($self, $ctx) = @_; $self->body('/4/3'); $ctx->goto('/5/3') };
-
-hook_to '/5/1' => sub { my ($self, $ctx) = @_; $self->body('/5/1'); $ctx->goto('/1/2') };
-hook_to '/5/2' => sub { my ($self, $ctx) = @_; $self->body('/5/2'); $ctx->goto('/1/3') };
-hook_to '/5/3' => sub { my ($self, $ctx) = @_; $self->body('/5/3') };
+hook_to '/1/1' => sub { my $self = shift; $self->body('/1/1'); $self->context->goto('/2')   };
+hook_to '/1/2' => sub { my $self = shift; $self->body('/1/2'); $self->context->goto('/2/2') };
+hook_to '/1/3' => sub { my $self = shift; $self->body('/1/3'); $self->context->goto('/2/3') };
+                                                                             
+hook_to '/2/1' => sub { my $self = shift; $self->body('/2/1'); $self->context->goto('/3')   };
+hook_to '/2/2' => sub { my $self = shift; $self->body('/2/2'); $self->context->goto('/3/2') };
+hook_to '/2/3' => sub { my $self = shift; $self->body('/2/3'); $self->context->goto('/3/3') };
+                                                                             
+hook_to '/3/1' => sub { my $self = shift; $self->body('/3/1'); $self->context->goto('/4')   };
+hook_to '/3/2' => sub { my $self = shift; $self->body('/3/2'); $self->context->goto('/4/2') };
+hook_to '/3/3' => sub { my $self = shift; $self->body('/3/3'); $self->context->goto('/4/3') };
+                                                                             
+hook_to '/4/1' => sub { my $self = shift; $self->body('/4/1'); $self->context->goto('/5')   };
+hook_to '/4/2' => sub { my $self = shift; $self->body('/4/2'); $self->context->goto('/5/2') };
+hook_to '/4/3' => sub { my $self = shift; $self->body('/4/3'); $self->context->goto('/5/3') };
+                                                                             
+hook_to '/5/1' => sub { my $self = shift; $self->body('/5/1'); $self->context->goto('/1/2') };
+hook_to '/5/2' => sub { my $self = shift; $self->body('/5/2'); $self->context->goto('/1/3') };
+hook_to '/5/3' => sub { my $self = shift; $self->body('/5/3') };
 
 no  Encomp;
 
