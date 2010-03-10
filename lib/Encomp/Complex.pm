@@ -36,9 +36,9 @@ sub _autoload {
     $name =~ s/(^.*):://o;
     $name eq 'DESTROY' && return;
     my $package = $1;
-    if (my $symbol = $proto->complex->{methods}{$name}) {
-        Encomp::Util::reinstall_subroutine($package, $name => \&{$symbol});
-        goto \&{$symbol};
+    if (my $method = $proto->complex->{methods}{$name}) {
+        Encomp::Util::reinstall_subroutine($package, $name => $method);
+        goto $method;
     }
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
 }
