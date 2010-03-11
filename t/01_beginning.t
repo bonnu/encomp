@@ -111,6 +111,11 @@ ok  +Foo::Controller->isa('Encomp::Class::Controller');
 
 my $foo = Foo->operate('Foo::Controller');
 
+ok $foo->loaded('Foo::Plugin::A');
+ok $foo->loaded('Foo::Plugin::B');
+ok $foo->loaded('Foo::Plugin::C');
+ok not $foo->loaded('Foo::Plugin::D');
+
 is_deeply
     [ Foo->node->get_all_ids ],
     [

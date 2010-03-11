@@ -25,6 +25,7 @@ sub _initialize {
             can      => \&_can,
             complex  => sub { $complex },
             context  => sub { $_[0]->{context} },
+            loaded   => \&_loaded,
         );
     }
     return $package;
@@ -45,6 +46,11 @@ sub _autoload {
 
 sub _can {
     $_[0]->complex->{methods}{$_[1]} || do { no warnings; UNIVERSAL::can(@_) }
+}
+
+sub _loaded {
+    my ($self, $plugin_name) = @_;
+    grep /$plugin_name/, @{$self->complex->{loaded}};
 }
 
 1;
