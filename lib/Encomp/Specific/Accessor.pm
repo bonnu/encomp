@@ -7,42 +7,53 @@ use Encomp::Exporter;
 use Carp qw/croak/;
 use Encomp::Util;
 
-Encomp::Exporter->setup_suger_features(as_is => [qw/accessor accessors/]);
+Encomp::Exporter->setup_suger_features(as_is => [qw/accessor/]);
 
 sub accessor {
     my $class = caller;
-    _make_accessors($class, shift);
-}
-
-sub accessors {
-    my $class = caller;
-    _make_accessors($class, @_);
+    _make_accessor($class, @_);
 }
 
 # stole from Class::Accessor::_mk_accessors & remaked
-sub _make_accessors {
-    my ($class, @fields) = @_;
-    for my $field (@fields) {
-        for my $reserved (qw/DESTROY AUTOLOAD/) {
-            croak "Having a data accessor named $reserved in '$class' is unwise."
-                if $field eq $reserved;
-        }
-        my $accessor = _make_rw_accessor($field);
-        my $fullname = "${class}::$field";
-        if (defined &{$fullname}) {
-            croak "$fullname accessor has been defined.";
-        }
-        Encomp::Util::reinstall_subroutine($class, $field => $accessor);
+sub _make_accessor {
+    my ($class, $field, $default) = @_;
+    for my $reserved (qw/DESTROY AUTOLOAD/) {
+        croak "Having a data accessor named $reserved in '$class' is unwise."
+            if $field eq $reserved;
     }
+    my ($accessor, $code) = _make_rw_accessor($field, $default);
+    my $fullname = "${class}::$field";
+    if (defined &{$fullname}) {
+        croak "$fullname accessor has been defined.";
+    }
+    my @init;
+    if (defined $code) {
+        my $initializer = _make_initializer($field, $code);
+        push @init, "initial_$field" => $initializer;
+    }
+    Encomp::Util::reinstall_subroutine($class, $field => $accessor, @init);
 }
 
 sub _make_rw_accessor {
-    my $field = shift;
+    my ($field, $default) = @_;
+    my $code;
+    if (defined $default) {
+        $code = ref $default eq 'CODE' ? $default : sub { $default };
+    }
     return sub {
-        return $_[0]->{$field}         if @_ == 1;
+        if (@_ == 1) {
+            $_[0]->{$field} = $code->($_[0])
+                if ! exists $_[0]->{$field} && defined $code;
+            return $_[0]->{$field};
+        }
         return $_[0]->{$field} = $_[1] if @_ == 2;
         croak "The argument that can be set is up to one.";
-    };
+    }, $code;
+}
+
+sub _make_initializer {
+    my ($field, $code) = @_;
+    sub { $_[0]->{$field} = $code->($_[0]) };
 }
 
 1;

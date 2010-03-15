@@ -7,9 +7,9 @@ use Digest::MD5 qw/md5_hex/;
 use UNIVERSAL::can;
 
 sub build {
-    my $class   = shift;
-    my $package = _initialize(@_);
-    bless {}, $package;
+    my ($class, $encompasser, $adhoc, @args) = @_;
+    my $package = _initialize($encompasser => $adhoc);
+    bless { arguments => \@args }, $package;
 }
 
 sub _initialize {
@@ -21,11 +21,12 @@ sub _initialize {
         my $complex = Encomp::Base->conflate($encompasser, @adhoc);
         Encomp::Util::reinstall_subroutine(
             $package,
-            AUTOLOAD => \&_autoload,
-            can      => \&_can,
-            complex  => sub { $complex },
-            context  => sub { $_[0]->{context} },
-            loaded   => \&_loaded,
+            AUTOLOAD  => \&_autoload,
+            arguments => \&_arguments,
+            can       => \&_can,
+            complex   => sub { $complex },
+            context   => sub { $_[0]->{context} },
+            loaded    => \&_loaded,
         );
     }
     return $package;
@@ -44,13 +45,17 @@ sub _autoload {
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
 }
 
+sub _arguments {
+    wantarray ? @{ $_[0]->{arguments} } : $_[0]->{arguments}
+}
+
 sub _can {
     $_[0]->complex->{methods}{$_[1]} || do { no warnings; UNIVERSAL::can(@_) }
 }
 
 sub _loaded {
     my ($self, $plugin_name) = @_;
-    grep /$plugin_name/, @{$self->complex->{loaded}};
+    grep /$plugin_name/, @{$self->complex->{loaded}}
 }
 
 1;

@@ -8,18 +8,22 @@ BEGIN {
 
     accessor 'foo';
 
+    accessor 'bar' => 'baz';
+
     no  Encomp::Plugin;
 }
 
-package Foo;
-use Encomp;
-processes qw/main/;
-plugins qw/Foo::Plugin::A/;
-hook_to '/main' => sub {
-    my $self = shift;
-    $self->foo('hello');
-};
-no  Encomp;
+{
+    package Foo;
+    use Encomp;
+    processes qw/main/;
+    plugins qw/Foo::Plugin::A/;
+    hook_to '/main' => sub {
+        my $self = shift;
+        $self->foo('hello');
+    };
+    no  Encomp;
+}
 
 package main;
 
@@ -34,3 +38,5 @@ $foo->foo('!!');
 
 is  +$foo->foo,   '!!';
 is  +$foo->{foo}, '!!';
+
+is  +$foo->bar,   'baz';

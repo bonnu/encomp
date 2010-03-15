@@ -37,8 +37,8 @@ sub _make_class_data_accessor {
     my ($class, $field, $data) = @_;
     return sub {
         if (ref $_[0]) {
-          return $_[0]->{$field} = $_[1] if @_ > 1;
-          return $_[0]->{$field}         if exists $_[0]->{$field};
+            return $_[0]->{$field} = $_[1] if @_ > 1;
+            return $_[0]->{$field}         if exists $_[0]->{$field};
         }
         my $wantclass = ref($_[0]) || $_[0];
         return _make_class_accessor($wantclass, $field)->(@_)
