@@ -6,6 +6,7 @@ use Encomp::Exporter;
 
 use Carp qw/croak/;
 use Encomp::Util;
+use Storable qw/dclone/;
 
 Encomp::Exporter->setup_suger_features(as_is => [qw/accessor/]);
 
@@ -38,7 +39,10 @@ sub _make_rw_accessor {
     my ($field, $default) = @_;
     my $code;
     if (defined $default) {
-        $code = ref $default eq 'CODE' ? $default : sub { $default };
+        my $ref = ref $default;
+        $code  = $ref
+            ? ($ref eq 'CODE' ? $default : sub { dclone $default })
+            : sub { $default };
     }
     return sub {
         if (@_ == 1) {
