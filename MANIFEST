@@ -45,6 +45,7 @@ t/04_plugin/03_ducktype.t
 t/04_plugin/04_config.t
 t/04_plugin/04_config.yaml
 t/05_process.t
+t/06_reflected_setting.t
 t/benchmark.pl
 t/lib/DemoFW.pm
 t/lib/DemoFW/Controller.pm
