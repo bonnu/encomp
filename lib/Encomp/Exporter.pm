@@ -5,7 +5,7 @@ use base qw/Exporter/;
 use Encomp::Exporter::Spec;
 use Carp qw/croak/;
 
-our @EXPORT = qw/setup_suger_features/;
+our @EXPORT = qw/setup_suger_features suger_feature/;
 
 sub import {
     my ($class) = @_;
@@ -23,6 +23,18 @@ sub setup_suger_features {
         import   => Encomp::Exporter::Spec::build_import  ($caller),
         unimport => Encomp::Exporter::Spec::build_unimport($caller),
     );
+}
+
+our $CALLER;
+
+sub suger_feature {
+    my ($name, $code) = @_;
+    my $caller = caller;
+    my $wrap   = sub {
+        unshift @_, $CALLER || scalar caller;
+        goto $code;
+    };
+    Encomp::Util::reinstall_subroutine($caller, $name => $wrap);
 }
 
 1;

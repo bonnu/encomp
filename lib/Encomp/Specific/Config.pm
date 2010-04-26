@@ -9,8 +9,8 @@ use YAML::Any ();
 
 setup_suger_features as_is => [qw/config/];
 
-sub config {
-    my $class  = caller;
+suger_feature config => sub {
+    my $class  = shift;
     my $stash  = $class->composite->stash->{config} ||= {};
     my $config = 1 == @_ ? shift : +{ @_ };
     if (my $ref = ref $config) {
@@ -31,7 +31,7 @@ sub config {
         $config = YAML::Any::LoadFile($config);
     }
     %{$stash} = %{Hash::Merge::merge($config, $stash)};
-}
+};
 
 1;
 

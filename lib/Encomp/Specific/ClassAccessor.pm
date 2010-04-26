@@ -8,10 +8,10 @@ use Carp qw/carp croak/;
 
 setup_suger_features as_is => [qw/class_accessor/];
 
-sub class_accessor {
-    my $class = caller;
+suger_feature class_accessor => sub {
+    my $class = shift;
     _make_class_accessor($class, @_);
-}
+};
 
 # stole from Class::Data::Accessor::mk_classaccessor & remaked
 sub _make_class_accessor {

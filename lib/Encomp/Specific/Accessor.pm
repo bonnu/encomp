@@ -10,10 +10,10 @@ use Storable qw/dclone/;
 
 setup_suger_features as_is => [qw/accessor/];
 
-sub accessor {
-    my $class = caller;
+suger_feature accessor => sub {
+    my $class = shift;
     _make_accessor($class, @_);
-}
+};
 
 # stole from Class::Accessor::_mk_accessors & remaked
 sub _make_accessor {

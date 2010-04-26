@@ -20,19 +20,19 @@ setup_suger_features
     /],
 ;
 
-sub processes {
-    my $class = caller;
+suger_feature processes => sub {
+    my $class = shift;
     $class->node->append_nodes(@_);
-}
+};
 
-sub incorporate {
-    my $class  = caller;
+suger_feature incorporate => sub {
+    my $class  = shift;
     my $plugin = shift;
     Encomp::Util::load_class($plugin);
     croak "Target plugin isn't isa('$applicant')" unless $plugin->isa($applicant);
     $class->node->append_nodes($plugin->node->get_all_ids);
     $class->composite->add_plugins($plugin);
-}
+};
 
 1;
 

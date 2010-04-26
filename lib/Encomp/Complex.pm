@@ -7,14 +7,15 @@ use Digest::MD5 qw/md5_hex/;
 use UNIVERSAL::can;
 
 sub build {
-    my ($class, $encompasser, $adhoc, @args) = @_;
+    my ($encompasser, $adhoc, @args) = @_;
     my $package = _initialize($encompasser => $adhoc);
     bless { arguments => \@args }, $package;
 }
 
 sub _initialize {
     my ($encompasser, $adhoc) = @_;
-    my @adhoc   = ($adhoc && ref $adhoc) ? @{$adhoc} : $adhoc || ();
+    my $ref     = ref $adhoc;
+    my @adhoc   = ($adhoc && $ref && $ref eq 'ARRAY') ? @{$adhoc} : $adhoc || ();
     my $id      = '_' . (0 < @adhoc ? md5_hex join '/', sort @adhoc : '');
     my $package = join '::', $encompasser, '_complexed', $id;
     unless (Encomp::Util::get_code_ref($package, 'complex')) {

@@ -18,10 +18,10 @@ setup_suger_features
     },
 ;
 
-sub hook_to {
-    my $class = caller;
+suger_feature hook_to => sub {
+    my $class = shift;
     $class->composite->add_hook(@_);
-}
+};
 
 1;
 

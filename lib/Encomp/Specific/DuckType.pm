@@ -29,11 +29,11 @@ setup_suger_features
     },
 ;
 
-sub duck_type {
-    my $class = caller;
+suger_feature duck_type => sub {
+    my $class = shift;
     my $stash = $class->composite->stash->{duck_type} ||= {};
     @{$stash}{@_} = map { $class } @_;
-}
+};
 
 1;
 

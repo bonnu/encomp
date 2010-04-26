@@ -7,7 +7,7 @@ use Encomp::Meta::ProcessingNode;
 setup_metadata node => sub { Encomp::Meta::ProcessingNode->new };
 
 sub build {
-    Encomp::Complex->build(@_);
+    Encomp::Complex::build(@_);
 }
 
 sub operate {

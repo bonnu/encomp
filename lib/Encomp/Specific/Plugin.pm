@@ -15,17 +15,17 @@ setup_suger_features
     },
 ;
 
-sub plugins {
-    my $class   = caller;
+suger_feature plugins => sub {
+    my $class   = shift;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
     $class->composite->add_plugins(@plugins);
-}
+};
 
-sub plugout {
-    my $class   = caller;
+suger_feature plugout => sub {
+    my $class   = shift;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
     $class->composite->add_plugout(@plugins);
-}
+};
 
 sub AUTOLOAD {
     my $proto = $_[0];
