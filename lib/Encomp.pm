@@ -8,7 +8,7 @@ our $VERSION = '0.01';
 
 my $applicant = 'Encomp::Class::Encompasser';
 
-Encomp::Exporter->setup_suger_features(
+setup_suger_features
     applicant_isa => $applicant,
     as_is         => [qw/processes incorporate/],
     specific_ns   => 'Encomp::Specific',
@@ -18,7 +18,7 @@ Encomp::Exporter->setup_suger_features(
         +Hook
         +Plugin
     /],
-);
+;
 
 sub processes {
     my $class = caller;

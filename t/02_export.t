@@ -7,10 +7,10 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    Encomp::Exporter->setup_suger_features(
+    setup_suger_features
         applicant_isa => __PACKAGE__ . '::Object',
         as_is         => [qw/foo suger/],
-    );
+    ;
 
     sub foo   {}
     sub suger { __PACKAGE__ }
@@ -27,11 +27,11 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    Encomp::Exporter->setup_suger_features(
+    setup_suger_features
         applicant_isa => __PACKAGE__ . '::Object',
         as_is         => [qw/bar suger/],
         specific_with => [qw/Qux/],
-    );
+    ;
 
     sub bar   {}
     sub suger { __PACKAGE__ }
@@ -48,10 +48,10 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    Encomp::Exporter->setup_suger_features(
+    setup_suger_features
         applicant_isa => __PACKAGE__ . '::Object',
         as_is         => [qw/baz suger/],
-    );
+    ;
 
     sub baz   {}
     sub suger { __PACKAGE__ }
@@ -64,9 +64,9 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    Encomp::Exporter->setup_suger_features(
+    setup_suger_features
         as_is => [qw/qux/],
-    );
+    ;
 
     sub qux   {}
 }

@@ -4,7 +4,7 @@ use Encomp::Exporter;
 use base qw/Encomp::Specific::Plugin/;
 use Carp qw/confess/;
 
-Encomp::Exporter->setup_suger_features(
+setup_suger_features
     as_is => [qw/duck_type/],
     setup => sub {
         my $complex = shift;
@@ -27,7 +27,7 @@ Encomp::Exporter->setup_suger_features(
         }
         $message && confess $message;
     },
-);
+;
 
 sub duck_type {
     my $class = caller;

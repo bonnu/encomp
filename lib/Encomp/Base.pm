@@ -6,9 +6,8 @@ use Encomp::Meta::Composite;
 use Encomp::Util;
 use List::MoreUtils qw/uniq/;
 
-Encomp::Exporter->setup_suger_features(
-    metadata => { composite => sub { Encomp::Meta::Composite->new(@_) } },
-);
+setup_suger_features
+    metadata => { composite => sub { Encomp::Meta::Composite->new(@_) } };
 
 sub conflate {
     my ($class, @classes) = @_;

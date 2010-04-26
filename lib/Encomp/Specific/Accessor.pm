@@ -8,7 +8,7 @@ use Carp qw/croak/;
 use Encomp::Util;
 use Storable qw/dclone/;
 
-Encomp::Exporter->setup_suger_features(as_is => [qw/accessor/]);
+setup_suger_features as_is => [qw/accessor/];
 
 sub accessor {
     my $class = caller;

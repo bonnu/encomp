@@ -4,7 +4,7 @@ use Encomp::Class;
 use Encomp::Complex;
 use Encomp::Meta::ProcessingNode;
 
-Encomp::Class->setup_metadata(node => sub { Encomp::Meta::ProcessingNode->new });
+setup_metadata node => sub { Encomp::Meta::ProcessingNode->new };
 
 sub build {
     Encomp::Complex->build(@_);

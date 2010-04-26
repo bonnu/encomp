@@ -3,7 +3,7 @@ package Encomp::Specific::Hook;
 use Encomp::Exporter;
 use base qw/Encomp::Base/;
 
-Encomp::Exporter->setup_suger_features(
+setup_suger_features
     as_is => [qw/hook_to/],
     setup => sub {
         my $complex = shift;
@@ -16,7 +16,7 @@ Encomp::Exporter->setup_suger_features(
         }
         $complex->{hooks} = \%hooks;
     },
-);
+;
 
 sub hook_to {
     my $class = caller;

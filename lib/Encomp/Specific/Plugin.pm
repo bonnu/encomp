@@ -5,7 +5,7 @@ use base qw/Encomp::Base/;
 use Carp qw/croak confess/;
 use Encomp::Util;
 
-Encomp::Exporter->setup_suger_features(
+setup_suger_features
     as_is => [qw/plugins plugout +AUTOLOAD/],
     setup => sub {
         my $complex = shift;
@@ -13,7 +13,7 @@ Encomp::Exporter->setup_suger_features(
         delete $methods->{composite};
         $complex->{methods} = $methods;
     },
-);
+;
 
 sub plugins {
     my $class   = caller;

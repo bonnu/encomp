@@ -6,7 +6,7 @@ use Encomp::Exporter;
 
 use Carp qw/carp croak/;
 
-Encomp::Exporter->setup_suger_features(as_is => [qw/class_accessor/]);
+setup_suger_features as_is => [qw/class_accessor/];
 
 sub class_accessor {
     my $class = caller;

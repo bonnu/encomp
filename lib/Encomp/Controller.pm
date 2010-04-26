@@ -3,14 +3,14 @@ package Encomp::Controller;
 use Encomp::Exporter;
 use base qw/Encomp::Base/;
 
-Encomp::Exporter->setup_suger_features(
+setup_suger_features
     applicant_isa => 'Encomp::Class::Controller',
     specific_ns   => 'Encomp::Specific',
     specific_with => [qw/
         +Hook
         +Plugin
     /],
-);
+;
 
 1;
 

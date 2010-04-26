@@ -7,7 +7,7 @@ use File::Spec;
 use Hash::Merge;
 use YAML::Any ();
 
-Encomp::Exporter->setup_suger_features(as_is => [qw/config/]);
+setup_suger_features as_is => [qw/config/];
 
 sub config {
     my $class  = caller;
