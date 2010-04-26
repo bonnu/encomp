@@ -1,5 +1,6 @@
 package Encomp::Exporter::Spec;
 
+use Encomp::Class;
 use Encomp::Util;
 use List::MoreUtils qw/uniq/;
 

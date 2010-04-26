@@ -1,6 +1,7 @@
 package Encomp::Base;
 
 use Encomp::Exporter;
+use Encomp::Exporter::Spec;
 use Encomp::Meta::Composite;
 use Encomp::Util;
 use List::MoreUtils qw/uniq/;
@@ -21,13 +22,13 @@ sub conflate {
     @loaded = uniq @loaded;
     my @exporters;
     for my $plugin (@loaded) {
-        push @exporters, Encomp::Exporter->get_coated_base_exporters($plugin);
+        push @exporters, Encomp::Exporter::Spec::get_coated_base_exporters($plugin);
     }
     @exporters = uniq @exporters;
     $complex->{loaded}    = \@loaded;
     $complex->{exporters} = \@exporters;
     for my $exporter (@exporters) {
-        map { $_->($complex) } Encomp::Exporter->get_setup_methods($exporter);
+        map { $_->($complex) } Encomp::Exporter::Spec::get_setup_methods($exporter);
     }
     return $complex;
 }

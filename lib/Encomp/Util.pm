@@ -6,10 +6,10 @@ use Carp qw/confess/;
 use Class::Inspector;
 use Data::Util qw/:all/;
 
-use constant _strict_bits => strict::bits(qw/subs refs vars/);
+use constant strict_bits => strict::bits(qw/subs refs vars/);
 
 sub import {
-    $^H             |= _strict_bits;         # strict->import;
+    $^H             |= strict_bits;          # strict->import;
     ${^WARNING_BITS} = $warnings::Bits{all}; # warnings->import;
 }
 
