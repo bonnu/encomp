@@ -1,6 +1,6 @@
 package DemoFW::Plugin::Response;
 
-use Encomp::Plugin;
+use DemoFW::Plugin;
 
 sub response {
     my $self = shift;
@@ -26,6 +26,6 @@ sub output {
     return $self->response->{body} . "\n";
 }
 
-no  Encomp::Plugin;
+no  DemoFW::Plugin;
 
 1;

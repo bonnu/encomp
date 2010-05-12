@@ -10,7 +10,7 @@ do {
     local *STDOUT;
     open STDOUT, '>:scalar', \(my $str);
 
-    DemoFW->operate('DemoFW::Controller');
+    DemoFW->operate('DemoFW::Controller::Foo');
 
     is  $str, <<__STR__;
 Content-Type: text/plain;

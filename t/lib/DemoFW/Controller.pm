@@ -1,12 +1,10 @@
 package DemoFW::Controller;
 
-use Encomp::Controller;
+use Encomp::Exporter;
+use base qw/Encomp::Controller/;
 
-sub dispatch {
-    my $self = shift;
-    $self->response->{body} = 'hello world';
-}
-
-no  Encomp::Controller;
+setup_suger_features;
 
 1;
+
+__END__
