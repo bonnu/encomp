@@ -1,7 +1,7 @@
 package Encomp::Meta::Composite;
 
 use Encomp::Util;
-use base qw/Class::Accessor::Fast/;
+use parent qw/Class::Accessor::Fast/;
 use List::MoreUtils qw/uniq/;
 use List::Compare::Functional;
 

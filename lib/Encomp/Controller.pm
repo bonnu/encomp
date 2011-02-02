@@ -1,7 +1,7 @@
 package Encomp::Controller;
 
 use Encomp::Exporter;
-use base qw/Encomp::Base/;
+use parent qw/Encomp::Base/;
 
 setup_suger_features
     applicant_isa => 'Encomp::Class::Controller',

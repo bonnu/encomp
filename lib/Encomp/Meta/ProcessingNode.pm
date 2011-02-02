@@ -2,7 +2,7 @@ package Encomp::Meta::ProcessingNode;
 
 use strict;
 use warnings;
-use base qw/Tree::Simple/;
+use parent qw/Tree::Simple/;
 use Carp qw/croak/;
 use Tree::Simple qw/use_weak_refs/;
 

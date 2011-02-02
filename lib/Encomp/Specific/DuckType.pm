@@ -1,7 +1,7 @@
 package Encomp::Specific::DuckType;
 
 use Encomp::Exporter;
-use base qw/Encomp::Specific::Plugin/;
+use parent qw/Encomp::Specific::Plugin/;
 use Carp qw/confess/;
 
 setup_suger_features

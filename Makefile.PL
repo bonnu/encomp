@@ -10,6 +10,7 @@ my %requires = (
     'Class::Inspector' => 0,
     'Data::Util'       => 0.50,
     'Hash::Merge'      => 0.11,
+    'parent'           => 0,
     'Scalar::Util'     => 1.21,
     'Storable'         => 2.18,
     'Tree::Simple'     => 1.18,

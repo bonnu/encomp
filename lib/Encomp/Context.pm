@@ -2,18 +2,16 @@ package Encomp::Context;
 
 use strict;
 use warnings;
-use base qw/Class::Accessor::Fast/;
+use parent qw/Class::Accessor::Fast/;
 use Carp qw/croak/;
 
 __PACKAGE__->mk_accessors qw/return skip _goto/;
-#__PACKAGE__->mk_accessors qw/return skip error _goto/;
 
 sub new {
     my $class = shift;
     $class->SUPER::new({
         return  => 0,
         skip    => 0,
-#       errors  => [],
         current => undef,
         _goto   => undef,
     });
@@ -53,11 +51,6 @@ sub clear_goto {
     $self->_goto(undef);
     $self->skip(0);
 }
-
-#sub error_number  { scalar @{ $_[0]->errors } }
-#sub has_error     { scalar @{ $_[0]->errors } ? 1 : 0 }
-#sub add_errors    { push @{ shift->errors } => @_ }
-#sub clear_errors  { @{ $_[0]->errors } = () }
 
 1;
 

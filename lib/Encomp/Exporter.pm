@@ -1,7 +1,7 @@
 package Encomp::Exporter;
 
 use Encomp::Util;
-use base qw/Exporter/;
+use parent qw/Exporter/;
 use Encomp::Exporter::Spec;
 use Carp qw/croak/;
 

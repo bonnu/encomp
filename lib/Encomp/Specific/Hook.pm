@@ -1,7 +1,7 @@
 package Encomp::Specific::Hook;
 
 use Encomp::Exporter;
-use base qw/Encomp::Base/;
+use parent qw/Encomp::Base/;
 
 setup_suger_features
     as_is => [qw/hook_to/],

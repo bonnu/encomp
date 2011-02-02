@@ -1,7 +1,7 @@
 package Encomp::Specific::Config;
 
 use Encomp::Exporter;
-use base qw/Encomp::Specific::Plugin/;
+use parent qw/Encomp::Specific::Plugin/;
 use Carp qw/croak/;
 use File::Spec;
 use Hash::Merge;

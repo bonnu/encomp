@@ -1,7 +1,7 @@
 package Encomp::Class;
 
 use Encomp::Util;
-use base q/Exporter/;
+use parent q/Exporter/;
 
 our @EXPORT = qw/setup_metadata/;
 

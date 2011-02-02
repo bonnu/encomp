@@ -1,7 +1,7 @@
 package Encomp::Specific::Plugin;
 
 use Encomp::Exporter;
-use base qw/Encomp::Base/;
+use parent qw/Encomp::Base/;
 use Carp qw/croak confess/;
 use Encomp::Util;
 
@@ -37,7 +37,6 @@ sub AUTOLOAD {
     }
     croak qq{Can't locate object method "$name" via package "} . (ref $proto || $proto) . '"';
 }
-
 
 1;
 

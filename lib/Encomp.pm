@@ -1,7 +1,7 @@
 package Encomp;
 
 use Encomp::Exporter;
-use base qw/Encomp::Base/;
+use parent qw/Encomp::Base/;
 use Carp qw/croak/;
 
 our $VERSION = '0.01';
