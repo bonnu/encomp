@@ -2,19 +2,20 @@ package Encomp::Context;
 
 use strict;
 use warnings;
-use parent qw/Class::Accessor::Fast/;
 use Carp qw/croak/;
+use Scalar::Util qw/weaken/;
 
-__PACKAGE__->mk_accessors qw/return skip _goto/;
+use Class::Accessor::Lite rw => [qw/return skip _goto/];
 
 sub new {
     my $class = shift;
-    $class->SUPER::new({
+    bless {
         return  => 0,
         skip    => 0,
-        current => undef,
         _goto   => undef,
-    });
+        current => undef,
+        stash   => undef,
+    }, $class;
 }
 
 sub current {
@@ -29,6 +30,17 @@ sub current {
     else {
         return $self->{current};
     }
+}
+
+sub stash {
+    my $self = shift;
+    weaken($self->{stash} = shift) if 0 < @_;
+    $self->{stash};
+}
+
+sub clear_stash {
+    my $self = shift;
+    undef $self->{stash};
 }
 
 sub goto {

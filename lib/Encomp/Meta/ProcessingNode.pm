@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use parent qw/Tree::Simple/;
 use Carp qw/croak/;
+use Data::Util ();
 use Tree::Simple qw/use_weak_refs/;
 
 use Encomp::Context;
@@ -55,8 +56,14 @@ sub append_nodes {
 }
 
 sub invoke {
-    my ($self, $callback) = @_;
+    my ($self, $callback, $modifiers) = @_;
+    $modifiers = [] if ! $modifiers || ref $modifiers ne 'ARRAY';
     my $context = Encomp::Context->new;
+    for my $modifier (@{ $modifiers }) {
+        $callback = Data::Util::modify_subroutine($callback,
+            $modifier->{type} => [ $modifier->{modifier} ],
+        );
+    }
     do {
         last if $context->{return};
         _traverse($self, $context, $callback);

@@ -1,30 +1,27 @@
 package Encomp::Meta::Composite;
 
 use Encomp::Util;
-use parent qw/Class::Accessor::Fast/;
 use List::MoreUtils qw/uniq/;
-use List::Compare::Functional;
 
-__PACKAGE__->mk_accessors qw/
+use Class::Accessor::Lite rw => [qw/
     applicant
     depending_plugins
     hooks
     plugins
     plugout
     stash
-    _current_loaded
-/;
+/];
 
 sub new {
     my ($class, $applicant) = @_;
-    my $self = $class->SUPER::new({
+    my $self = bless {
         applicant         => $applicant,
         depending_plugins => undef,
         hooks             => {},
         plugins           => [],
         plugout           => [],
         stash             => {},
-    });
+    }, $class;
     return $self;
 }
 

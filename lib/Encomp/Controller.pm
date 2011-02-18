@@ -9,6 +9,7 @@ setup_suger_features
     specific_with => [qw/
         +Hook
         +Plugin
+        +ProcessModifier
     /],
 ;
 

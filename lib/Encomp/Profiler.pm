@@ -5,20 +5,20 @@ use warnings;
 use Data::Util;
 
 {
-    package
+    package #
         _EncompProfiler;
     use Encomp;
     no  Encomp;
 }
 
 {
-    package
+    package #
         _EncompProfilingResults;
     use Class::Accessor::Lite (
         new => 1,
         rw  => [qw/
             name
-            instance
+            nodes
             loaded
             methods
             own_methods
@@ -31,7 +31,6 @@ sub build_info {
     my $obj = _EncompProfiler->build([ @classes ]);
     my $res = _EncompProfilingResults->new(
         name     => ref($obj),
-#       instance => $obj,
         loaded   => $obj->complex->{loaded},
         methods  => {
             map { $_ => {
@@ -39,11 +38,14 @@ sub build_info {
                 code => $obj->complex->{methods}->{$_},
             } } keys %{ $obj->complex->{methods} }
         },
-        own_methods => {
-            do {
-                my $stash = Data::Util::get_stash(ref $obj);
-                map { $_ => { code => \&{$stash->{$_}} } } keys %{ $stash }
-            },
+        own_methods => do {
+            my $stash = Data::Util::get_stash(ref $obj);
+            +{ map { $_ => { code => \&{$stash->{$_}} } } keys %{ $stash } }
+        },
+        nodes   => do {
+            my @nodes;
+            $obj->node->invoke(sub { push @nodes, shift->get_path });
+            \@nodes
         },
     );
 }

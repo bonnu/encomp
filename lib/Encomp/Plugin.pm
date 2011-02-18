@@ -10,6 +10,7 @@ setup_suger_features
         +DuckType
         +Hook
         +Plugin
+        +ProcessModifier
     /],
 ;
 
