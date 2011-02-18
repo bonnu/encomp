@@ -14,4 +14,4 @@
 \.svn/
 \.git/
 \.shipit
-^t/9\d_.*\.t
+^xt/9\d_.*\.t
