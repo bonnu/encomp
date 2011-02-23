@@ -4,7 +4,6 @@ use Encomp::Util;
 require Encomp::Base;
 use Carp qw/croak/;
 use Digest::MD5 qw/md5_hex/;
-use UNIVERSAL::can;
 
 sub build {
     my ($encompasser, $adhoc, @args) = @_;

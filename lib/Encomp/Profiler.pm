@@ -3,12 +3,12 @@ package Encomp::Profiler;
 use strict;
 use warnings;
 use Data::Util;
+use Encomp::Util;
 
 {
     package #
-        _EncompProfiler;
-    use Encomp;
-    no  Encomp;
+        # initialize dummy class
+        _EncompProfiler; use Encomp; no Encomp
 }
 
 {
@@ -27,8 +27,14 @@ use Data::Util;
 }
 
 sub build_info {
-    my @classes = @_;
-    my $obj = _EncompProfiler->build([ @classes ]);
+    my ($encomp, @components) = @_;
+    die 'There is no element' unless @_;
+    Encomp::Util::load_class($encomp);
+    unless ($encomp->isa('Encomp::Class::Encompasser')) {
+        unshift @components, "$encomp";
+        $encomp = '_EncompProfiler';
+    }
+    my $obj = $encomp->build([ @components ]);
     my $res = _EncompProfilingResults->new(
         name     => ref($obj),
         loaded   => $obj->complex->{loaded},
