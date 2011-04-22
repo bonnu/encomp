@@ -4,7 +4,7 @@ use Encomp::Exporter;
 use parent qw/Encomp::Specific::Plugin/;
 use Carp qw/confess/;
 
-setup_suger_features
+setup_sugar_features
     as_is => [qw/duck_type/],
     setup => sub {
         my $complex = shift;
@@ -29,7 +29,7 @@ setup_suger_features
     },
 ;
 
-suger_feature duck_type => sub {
+sugar_feature duck_type => sub {
     my $class = shift;
     my $stash = $class->composite->stash->{duck_type} ||= {};
     @{$stash}{@_} = map { $class } @_;

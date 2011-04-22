@@ -3,7 +3,7 @@ package Encomp::Plugin;
 use Encomp::Exporter;
 use parent qw/Encomp::Base/;
 
-setup_suger_features
+setup_sugar_features
     applicant_isa => 'Encomp::Class::Plugin',
     specific_ns   => 'Encomp::Specific',
     specific_with => [qw/

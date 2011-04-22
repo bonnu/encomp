@@ -8,9 +8,9 @@ use Carp qw/croak/;
 use Encomp::Util;
 use Storable qw/dclone/;
 
-setup_suger_features as_is => [qw/accessor/];
+setup_sugar_features as_is => [qw/accessor/];
 
-suger_feature accessor => sub {
+sugar_feature accessor => sub {
     my $class = shift;
     _make_accessor($class, @_);
 };

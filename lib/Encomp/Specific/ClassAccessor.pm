@@ -6,9 +6,9 @@ use Encomp::Exporter;
 
 use Carp qw/carp croak/;
 
-setup_suger_features as_is => [qw/class_accessor/];
+setup_sugar_features as_is => [qw/class_accessor/];
 
-suger_feature class_accessor => sub {
+sugar_feature class_accessor => sub {
     my $class = shift;
     _make_class_accessor($class, @_);
 };

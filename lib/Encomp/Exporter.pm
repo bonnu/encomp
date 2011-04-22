@@ -5,7 +5,7 @@ use parent qw/Exporter/;
 use Encomp::Exporter::Spec;
 use Carp qw/croak/;
 
-our @EXPORT = qw/setup_suger_features suger_feature/;
+our @EXPORT = qw/setup_sugar_features sugar_feature/;
 
 sub import {
     my ($class) = @_;
@@ -14,7 +14,7 @@ sub import {
     $class->export_to_level(1, @_);
 }
 
-sub setup_suger_features {
+sub setup_sugar_features {
     my $caller = caller;
     croak 'This function should not be called from main' if $caller eq 'main';
     Encomp::Exporter::Spec::build_spec($caller, @_);
@@ -27,7 +27,7 @@ sub setup_suger_features {
 
 our $CALLER;
 
-sub suger_feature {
+sub sugar_feature {
     my ($name, $code) = @_;
     my $caller = caller;
     my $wrap   = sub {

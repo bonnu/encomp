@@ -4,7 +4,7 @@ use Encomp::Exporter;
 use parent qw/Encomp::Base/;
 use Carp qw/croak confess/;
 
-setup_suger_features
+setup_sugar_features
     as_is => [qw/modify_process/],
     setup => sub {
         my $complex   = shift;
@@ -17,7 +17,7 @@ setup_suger_features
     },
 ;
 
-suger_feature modify_process => sub {
+sugar_feature modify_process => sub {
     my $class = shift;
     my $stash = $class->composite->stash->{process_modifiers} ||= [];
     while (my ($type, $modifier) = splice @_, 0, 2) {

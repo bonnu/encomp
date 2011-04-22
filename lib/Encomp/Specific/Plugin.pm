@@ -5,7 +5,7 @@ use parent qw/Encomp::Base/;
 use Carp qw/croak confess/;
 use Encomp::Util;
 
-setup_suger_features
+setup_sugar_features
     as_is => [qw/plugins plugout +AUTOLOAD/],
     setup => sub {
         my $complex = shift;
@@ -15,13 +15,13 @@ setup_suger_features
     },
 ;
 
-suger_feature plugins => sub {
+sugar_feature plugins => sub {
     my $class   = shift;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
     $class->composite->add_plugins(@plugins);
 };
 
-suger_feature plugout => sub {
+sugar_feature plugout => sub {
     my $class   = shift;
     my @plugins = ref $_[0] ? @{$_[0]} : @_;
     $class->composite->add_plugout(@plugins);

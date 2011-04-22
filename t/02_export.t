@@ -7,13 +7,13 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    setup_suger_features
+    setup_sugar_features
         applicant_isa => __PACKAGE__ . '::Object',
-        as_is         => [qw/foo suger/],
+        as_is         => [qw/foo sugar/],
     ;
 
     sub foo   {}
-    sub suger { __PACKAGE__ }
+    sub sugar { __PACKAGE__ }
 
     package Foo::Object;
 
@@ -27,14 +27,14 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    setup_suger_features
+    setup_sugar_features
         applicant_isa => __PACKAGE__ . '::Object',
-        as_is         => [qw/bar suger/],
+        as_is         => [qw/bar sugar/],
         specific_with => [qw/Qux/],
     ;
 
     sub bar   {}
-    sub suger { __PACKAGE__ }
+    sub sugar { __PACKAGE__ }
 
     package Bar::Object;
 
@@ -48,13 +48,13 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    setup_suger_features
+    setup_sugar_features
         applicant_isa => __PACKAGE__ . '::Object',
-        as_is         => [qw/baz suger/],
+        as_is         => [qw/baz sugar/],
     ;
 
     sub baz   {}
-    sub suger { __PACKAGE__ }
+    sub sugar { __PACKAGE__ }
 
     package Baz::Object;
 
@@ -64,7 +64,7 @@ use Test::More 'no_plan';
 
     use Encomp::Exporter;
 
-    setup_suger_features
+    setup_sugar_features
         as_is => [qw/qux/],
     ;
 
@@ -76,16 +76,16 @@ package Test::Foo;
 Foo->import; #::diag 'use Foo;';
 
 ::can_ok 'Test::Foo', 'foo';
-::can_ok 'Test::Foo', 'suger';
+::can_ok 'Test::Foo', 'sugar';
 ::ok ! Test::Foo->can('bar'),   'Test::Foo->can\'t(\'bar\')' ;
 ::ok ! Test::Foo->can('baz'),   'Test::Foo->can\'t(\'baz\')' ;
 
-::is +Test::Foo->suger, 'Foo', 'suger is \'Foo\'';
+::is +Test::Foo->sugar, 'Foo', 'sugar is \'Foo\'';
 
 Foo->unimport; #::diag 'no Foo;';
 
 ::ok ! Test::Foo->can('foo'),   'Test::Foo->can\'t(\'foo\')';
-::ok ! Test::Foo->can('suger'), 'Test::Foo->can\'t(\'suger\')';
+::ok ! Test::Foo->can('sugar'), 'Test::Foo->can\'t(\'sugar\')';
 
 ::is +Test::Foo->me, 'Foo::Object';
 
@@ -98,17 +98,17 @@ Bar->import; #::diag 'use Bar;';
 ::can_ok 'Test::Bar', 'foo';
 ::can_ok 'Test::Bar', 'bar';
 ::can_ok 'Test::Bar', 'qux';
-::can_ok 'Test::Bar', 'suger';
+::can_ok 'Test::Bar', 'sugar';
 ::ok ! Test::Bar->can('baz'),   'Test::Bar->can\'t(\'baz\')' ;
 
-::is +Test::Bar->suger, 'Bar', 'suger is \'Bar\'(The method of doing override becomes effective)';
+::is +Test::Bar->sugar, 'Bar', 'sugar is \'Bar\'(The method of doing override becomes effective)';
 
 Bar->unimport; #::diag 'no Bar;';
 
 ::ok ! Test::Bar->can('foo'),   'Test::Bar->can\'t(\'foo\')';
 ::ok ! Test::Bar->can('bar'),   'Test::Bar->can\'t(\'bar\')' ;
 ::ok ! Test::Bar->can('qux'),   'Test::Bar->can\'t(\'qux\')' ;
-::ok ! Test::Bar->can('suger'), 'Test::Bar->can\'t(\'suger\')';
+::ok ! Test::Bar->can('sugar'), 'Test::Bar->can\'t(\'sugar\')';
 
 ::is +Test::Bar->me, 'Bar::Object';
 
@@ -122,9 +122,9 @@ Baz->import; #::diag 'use Baz;';
 ::can_ok 'Test::Baz', 'bar';
 ::can_ok 'Test::Baz', 'qux';
 ::can_ok 'Test::Baz', 'baz';
-::can_ok 'Test::Baz', 'suger';
+::can_ok 'Test::Baz', 'sugar';
 
-::is +Test::Baz->suger, 'Baz', 'suger is \'Baz\'(The method of doing override becomes effective)';
+::is +Test::Baz->sugar, 'Baz', 'sugar is \'Baz\'(The method of doing override becomes effective)';
 
 Baz->unimport; #::diag 'no Baz;';
 
@@ -132,7 +132,7 @@ Baz->unimport; #::diag 'no Baz;';
 ::ok ! Test::Baz->can('bar'),   'Test::Baz->can\'t(\'bar\')' ;
 ::ok ! Test::Baz->can('qux'),   'Test::Baz->can\'t(\'qux\')' ;
 ::ok ! Test::Baz->can('baz'),   'Test::Baz->can\'t(\'baz\')' ;
-::ok ! Test::Baz->can('suger'), 'Test::Baz->can\'t(\'suger\')';
+::ok ! Test::Baz->can('sugar'), 'Test::Baz->can\'t(\'sugar\')';
 
 ::is +Test::Baz->me, 'Baz::Object';
 
