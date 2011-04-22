@@ -3,7 +3,7 @@ package Encomp::Specific::Hook;
 use Encomp::Exporter;
 use parent qw/Encomp::Base/;
 
-setup_suger_features
+setup_sugar_features
     as_is => [qw/hook_to/],
     setup => sub {
         my $complex = shift;
@@ -18,7 +18,7 @@ setup_suger_features
     },
 ;
 
-suger_feature hook_to => sub {
+sugar_feature hook_to => sub {
     my $class = shift;
     $class->composite->add_hook(@_);
 };

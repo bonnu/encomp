@@ -7,9 +7,9 @@ use File::Spec;
 use Hash::Merge;
 use YAML::Any ();
 
-setup_suger_features as_is => [qw/config/];
+setup_sugar_features as_is => [qw/config/];
 
-suger_feature config => sub {
+sugar_feature config => sub {
     my $class  = shift;
     my $stash  = $class->composite->stash->{config} ||= {};
     my $config = 1 == @_ ? shift : +{ @_ };

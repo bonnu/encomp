@@ -8,7 +8,7 @@ our $VERSION = '0.01';
 
 my $applicant = 'Encomp::Class::Encompasser';
 
-setup_suger_features
+setup_sugar_features
     applicant_isa => $applicant,
     as_is         => [qw/processes incorporate/],
     specific_ns   => 'Encomp::Specific',
@@ -21,12 +21,12 @@ setup_suger_features
     /],
 ;
 
-suger_feature processes => sub {
+sugar_feature processes => sub {
     my $class = shift;
     $class->node->append_nodes(@_);
 };
 
-suger_feature incorporate => sub {
+sugar_feature incorporate => sub {
     my $class  = shift;
     my $plugin = shift;
     Encomp::Util::load_class($plugin);

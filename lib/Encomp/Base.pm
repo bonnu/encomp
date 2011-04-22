@@ -6,7 +6,7 @@ use Encomp::Meta::Composite;
 use Encomp::Util;
 use List::MoreUtils qw/uniq/;
 
-setup_suger_features
+setup_sugar_features
     metadata => { composite => sub { Encomp::Meta::Composite->new(@_) } };
 
 sub conflate {
